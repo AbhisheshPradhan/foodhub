@@ -1,0 +1,15 @@
+# Dependencies
+**/node_modules/
+
+.DS_Store
+
+# Prisma - usually ignored as it is regenerated on install
+**/backend/generated/prisma/
+
+# Environment variables
+**/.env
+**/.env*
+
+# Build outputs
+**/dist/
+**/dist-ssr/
