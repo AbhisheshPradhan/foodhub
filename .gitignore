@@ -4,7 +4,7 @@
 .DS_Store
 
 # Prisma - usually ignored as it is regenerated on install
-**/backend/generated/prisma/
+**/backend/src/generated/prisma/
 
 # Environment variables
 **/.env
@@ -13,3 +13,4 @@
 # Build outputs
 **/dist/
 **/dist-ssr/
+
