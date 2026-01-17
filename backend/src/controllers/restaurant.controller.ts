@@ -11,26 +11,6 @@ import { CompleteMenu } from "@shared/types/restaurants.js";
 // todo: support query param filters later
 
 export const restaurantController = {
-	listRestaurants: async (req: Request, res: Response) => {
-		try {
-			const restaurants: Restaurant[] = await prisma.restaurant.findMany({
-				orderBy: { name: "asc" },
-			});
-
-			const response: ApiResponse<typeof restaurants> = {
-				success: true,
-				data: restaurants,
-			};
-
-			res.json(response);
-		} catch (error) {
-			res.status(500).json({
-				success: false,
-				error: "Failed to fetch restaurants",
-			});
-		}
-	},
-
 	getRestaurantById: async (req: Request, res: Response) => {
 		try {
 			const id = parseInt(req.params.id as string);

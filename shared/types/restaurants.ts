@@ -27,3 +27,12 @@ export interface CompleteMenu {
 		}>;
 	}>;
 }
+
+export type CreateRestaurantDto = Omit<
+	Restaurant,
+	"id" | "createdAt" | "updatedAt"
+>;
+
+export type UpdateRestaurantDto = Partial<
+	Omit<Restaurant, "id" | "createdAt" | "updatedAt">
+>;

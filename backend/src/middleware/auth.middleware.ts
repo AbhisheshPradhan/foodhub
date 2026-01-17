@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { config } from "../../config.js";
 
 interface AuthRequest extends Request {
 	userId?: string;
@@ -15,7 +16,7 @@ export const authenticate = (
 	if (!token) return res.status(401).json({ message: "Not authenticated" });
 
 	try {
-		const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+		const decoded = jwt.verify(token, config.jwt.secret) as {
 			id: string;
 		};
 		req.userId = decoded.id;

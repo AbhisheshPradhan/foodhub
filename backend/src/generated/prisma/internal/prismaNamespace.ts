@@ -979,6 +979,7 @@ export const UserScalarFieldEnum = {
   password: 'password',
   name: 'name',
   restaurantId: 'restaurantId',
+  role: 'role',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

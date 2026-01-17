@@ -6,7 +6,8 @@ export const config = {
 	},
 	jwt: {
 		secret: process.env.JWT_SECRET || "your-secret-key",
-		expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+		expiresIn: `${process.env.JWT_EXPIRES_IN}d` || "7d", // 7 days
+		maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 	},
 	cors: {
 		origin: process.env.CORS_ORIGIN || "*",

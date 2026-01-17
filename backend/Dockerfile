@@ -2,19 +2,22 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
+# 1. Copy package files first
 COPY backend/package*.json ./
 
-# Install dependencies
+# 2. Install dependencies (cached if package.json unchanged)
 RUN npm install
 
-# Copy shared types (this happens at build time)
+# 3. Copy prisma schema
+COPY backend/prisma ./prisma/
+
+# 4. Generate Prisma Client
+RUN npx prisma generate
+
+# 5. Copy shared types
 COPY shared/ ./shared/
 
-# Copy backend code
+# 6. Copy rest of backend code (changes most frequently)
 COPY backend/ .
-
-# Generate Prisma client
-RUN npx prisma generate
 
 CMD ["npm", "run", "dev"]

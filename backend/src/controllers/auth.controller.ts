@@ -1,94 +1,136 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import Joi from "joi";
 
 import { prisma } from "../lib/prisma.js";
+import { config } from "../../config.js";
 
 export interface AuthRequest extends Request {
 	userId: string;
 }
 
-const login = async (req: Request, res: Response) => {
-	const { username, password } = req.body;
-
-	const user = await prisma.user.findOne({ username });
-	if (!user) {
-		return res
-			.status(404)
-			.json({ message: "Invalid username or password" });
-	}
-
-	const isValid = await bcrypt.compare(password, user.password);
-	if (!isValid) {
-		return res
-			.status(400)
-			.json({ message: "Invalid username or password" });
-	}
-	const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
-		expiresIn: "1d",
-	});
-	res.cookie("token", token, {
-		httpOnly: true,
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict",
-	});
-	res.status(200).json({
-		_id: user._id,
-		username,
-		avatar: user.avatar,
-	});
-};
+const signUpSchema = Joi.object({
+	name: Joi.string().min(2).max(100).required(),
+	email: Joi.string().email().required(),
+	password: Joi.string().min(8).required(),
+});
 
 const signUp = async (req: Request, res: Response) => {
 	try {
-		const { username, password } = req.body;
-		const hashedPassword = await bcrypt.hash(password, 10);
-
-		if (await prisma.user.findOne({ username })) {
-			return res.status(409).json({ message: "Username already exists" });
+		const { error, value } = signUpSchema.validate(req.body);
+		if (error) {
+			return res.status(400).json({
+				message: error.details[0].message,
+			});
 		}
 
-		const newUser = new User({
-			username,
-			password: hashedPassword,
-			avatar: `https://ui-avatars.com/api/?name=${username}&background=4F46E5&color=fff`,
-			isOnline: true,
+		const { name, email, password } = value;
+
+		const userExists = await prisma.user.findUnique({
+			where: { email },
+		});
+		if (userExists) {
+			return res.status(409).json({ message: "User already exists" });
+		}
+
+		const hashedPassword = await bcrypt.hash(password, 10);
+
+		const result = await prisma.$transaction(async (tx) => {
+			const restaurant = await tx.restaurant.create({
+				data: {
+					name: "My Restaurant",
+				},
+			});
+			const newUser = {
+				name,
+				email,
+				password: hashedPassword,
+				role: "owner",
+				isActive: true,
+				restaurantId: restaurant.id,
+			};
+			const user = await tx.user.create({ data: newUser });
+			return { restaurant, user };
 		});
 
-		let createdUser = await newUser.save();
-
-		const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET!, {
-			expiresIn: "1d",
-		});
+		const token = jwt.sign(
+			{
+				userId: result.user.id,
+				restaurantId: result.user.restaurantId,
+				role: result.user.role,
+			},
+			config.jwt.secret,
+			{
+				expiresIn: config.jwt.expiresIn,
+			}
+		);
 		res.cookie("token", token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
 			sameSite: "strict",
+			maxAge: config.jwt.maxAge, // 7 days
 		});
 		res.status(201).json({
-			_id: createdUser._id,
-			username,
-			avatar: createdUser.avatar,
+			user: {
+				id: result.user.id,
+				name: result.user.name,
+				role: result.user.role,
+				email: result.user.email,
+			},
+			restaurant: result.restaurant,
 		});
 	} catch (error) {
+		console.error("Signup error:", error);
 		res.status(500).json({ error: "Internal server error" });
 	}
 };
 
-const logout = async (req: Request, res: Response) => {
-	res.clearCookie("token", {
-		httpOnly: true,
-		sameSite: "strict",
-		secure: process.env.NODE_ENV === "production",
-	});
+// const login = async (req: Request, res: Response) => {
+// 	const { email, password } = req.body;
 
-	res.status(200).json({ message: "Logged out" });
-};
+// 	const user = await prisma.user.findUnique({ email });
+// 	if (!user) {
+// 		return res
+// 			.status(404)
+// 			.json({ message: "Invalid username or password" });
+// 	}
 
-const me = async (req: AuthRequest, res: Response) => {
-	let userId = req.userId;
-	const user = await prisma.user.findById(userId).select("username avatar");
-	res.json(user);
-};
+// 	const isValid = await bcrypt.compare(password, user.password);
+// 	if (!isValid) {
+// 		return res
+// 			.status(400)
+// 			.json({ message: "Invalid username or password" });
+// 	}
+// 	const token = jwt.sign({ id: user.id }, config.jwt.secret, {
+// 		expiresIn: "1d",
+// 	});
+// 	res.cookie("token", token, {
+// 		httpOnly: true,
+// 		secure: process.env.NODE_ENV === "production",
+// 		sameSite: "strict",
+// 	});
+// 	res.status(200).json({
+// 		_id: user.id,
+// 		email,
+// 		avatar: user.avatar,
+// 	});
+// };
 
-export const authController = { login, signUp, logout, me };
+// const logout = async (req: Request, res: Response) => {
+// 	res.clearCookie("token", {
+// 		httpOnly: true,
+// 		sameSite: "strict",
+// 		secure: process.env.NODE_ENV === "production",
+// 	});
+
+// 	res.status(200).json({ message: "Logged out" });
+// };
+
+// const me = async (req: AuthRequest, res: Response) => {
+// 	let userId = req.userId;
+// 	const user = await prisma.user.findFirst(userId).select("username avatar");
+// 	res.json(user);
+// };
+
+export const authController = { signUp };

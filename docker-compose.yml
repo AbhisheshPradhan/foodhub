@@ -24,6 +24,7 @@ services:
             - ./backend:/app
             - ./shared:/app/shared
             - /app/node_modules
+            - /app/src/generated
         depends_on:
             - db
 
