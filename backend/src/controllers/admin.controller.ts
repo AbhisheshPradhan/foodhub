@@ -1,24 +1,16 @@
 import { Request, Response } from "express";
 
 import { prisma } from "../lib/prisma.js";
-import { ApiResponse } from "@shared/types/api-response.js";
+import { ApiResponse, responseWrapper } from "../utils/api-response.js";
 import { Restaurant } from "@shared/types/restaurants.js";
 
 const getAllUsers = async (req: Request, res: Response) => {
 	try {
 		const allUsers = await prisma.user.findMany();
 
-		const response: ApiResponse<typeof allUsers> = {
-			success: true,
-			data: allUsers,
-		};
-
-		res.json(response);
+		res.status(200).json(responseWrapper.success(allUsers));
 	} catch (error) {
-		res.status(500).json({
-			success: false,
-			error: "adminController:getAllUsers - Failed to fetch users",
-		});
+		res.status(500).json(responseWrapper.error("Failed to fetch users"));
 	}
 };
 
@@ -28,17 +20,11 @@ const getAllRestaurants = async (req: Request, res: Response) => {
 			orderBy: { name: "asc" },
 		});
 
-		const response: ApiResponse<typeof restaurants> = {
-			success: true,
-			data: restaurants,
-		};
-
-		res.json(response);
+		res.status(200).json(responseWrapper.success(restaurants));
 	} catch (error) {
-		res.status(500).json({
-			success: false,
-			error: "adminController:getAllRestaurants - Failed to fetch restaurants",
-		});
+		res.status(500).json(
+			responseWrapper.error("Failed to fetch restaurants")
+		);
 	}
 };
 

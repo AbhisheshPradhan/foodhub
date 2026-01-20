@@ -15,9 +15,8 @@ services:
         build:
             context: .
             dockerfile: backend/Dockerfile
-        environment:
-            DATABASE_URL: "postgresql://user:password@db:5432/foodhubdb?schema=public"
-            PORT: 4000
+        env_file:
+            - ./backend/.env
         ports:
             - "4000:4000"
         volumes:

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 import { prisma } from "../lib/prisma.js";
-import { ApiResponse } from "@shared/types/api-response.js";
+import { ApiResponse } from "../utils/api-response.js";
 import {
 	Restaurant,
 	RestaurantWithCategories,
