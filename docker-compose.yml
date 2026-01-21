@@ -27,5 +27,22 @@ services:
         depends_on:
             - db
 
+    admin-dashboard:
+        build:
+            context: .
+            dockerfile: admin-dashboard/Dockerfile
+        ports:
+            - "3000:3000"
+        volumes:
+            - ./admin-dashboard:/app
+            - ./shared:/app/shared
+            - /app/node_modules
+        environment:
+            CHOKIDAR_USEPOLLING: "true"
+            # API URL remains localhost because the request originates from the browser on your host machine
+            VITE_API_URL: "http://localhost:4000"
+        stdin_open: true
+        tty: true
+
 volumes:
     postgres_data:
