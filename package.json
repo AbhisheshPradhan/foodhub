@@ -1,19 +1,15 @@
 {
-  "name": "clear",
-  "version": "1.0.0",
-  "description": "Restaurant Menu + Restaurant Directory",
-  "homepage": "https://github.com/AbhisheshPradhan/foodhub#readme",
-  "bugs": {
-    "url": "https://github.com/AbhisheshPradhan/foodhub/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/AbhisheshPradhan/foodhub.git"
-  },
-  "license": "ISC",
-  "author": "Abhishesh Pradhan",
-  "devDependencies": {
-    "@types/node": "^25.0.8",
-    "prisma": "^6.19.2"
-  }
+	"name": "foodhub",
+	"version": "1.0.0",
+	"description": "Restaurant Menu + Restaurant Directory",
+	"homepage": "https://github.com/AbhisheshPradhan/foodhub#readme",
+	"bugs": {
+		"url": "https://github.com/AbhisheshPradhan/foodhub/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/AbhisheshPradhan/foodhub.git"
+	},
+	"license": "ISC",
+	"author": "Abhishesh Pradhan"
 }

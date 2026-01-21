@@ -1,17 +1,17 @@
-import { MenuItem } from "./menu-item";
-import { Restaurant } from "./restaurants";
+import type { MenuItem } from "./menu-item";
+import type { Restaurant } from "./restaurants";
 
 export interface Category {
-	id: number;
-	restaurantId: number;
-	name: string;
-	description: string | null;
-	displayOrder: number;
-	isActive: boolean;
-	createdAt: Date;
+    id: number;
+    restaurantId: number;
+    name: string;
+    description: string | null;
+    displayOrder: number;
+    isActive: boolean;
+    createdAt: Date;
 }
 
 export interface CategoryWithItems extends Category {
-	restaurant: Restaurant;
-	menuItems: MenuItem[];
+    restaurant: Restaurant;
+    menuItems: MenuItem[];
 }
