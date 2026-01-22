@@ -1,20 +1,20 @@
 import { useState } from "react";
 import { Link } from "react-router";
 
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@assets/icons";
+import { ChevronLeft, EyeClosedIcon, EyeIcon } from "lucide-react";
 import { Checkbox, Input, Label } from "@components/form";
 
 export const SignUpForm = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [isChecked, setIsChecked] = useState(false);
     return (
-        <div className="no-scrollbar flex w-full flex-1 flex-col overflow-y-auto ">
+        <div className="no-scrollbar flex w-full flex-1 flex-col overflow-y-auto">
             <div className="mx-auto mb-5 w-full max-w-md sm:pt-10">
                 <Link
                     to="/"
                     className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 >
-                    <ChevronLeftIcon className="size-5" />
+                    <ChevronLeft className="size-5" />
                     Back to dashboard
                 </Link>
             </div>
@@ -141,9 +141,9 @@ export const SignUpForm = () => {
                                             className="absolute top-1/2 right-4 z-30 -translate-y-1/2 cursor-pointer"
                                         >
                                             {showPassword ? (
-                                                <EyeIcon className="size-5 fill-gray-500 dark:fill-gray-400" />
+                                                <EyeIcon className="size-5" />
                                             ) : (
-                                                <EyeCloseIcon className="size-5 fill-gray-500 dark:fill-gray-400" />
+                                                <EyeClosedIcon className="size-5" />
                                             )}
                                         </span>
                                     </div>

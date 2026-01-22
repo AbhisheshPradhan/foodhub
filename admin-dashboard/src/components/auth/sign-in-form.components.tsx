@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@assets/icons";
+import { ChevronLeft, EyeClosedIcon, EyeIcon } from "lucide-react";
 import { Label, Checkbox, Input } from "@components/form";
 import { Button } from "@components/ui";
 
@@ -16,7 +16,7 @@ export const SignInForm = () => {
                     to="/"
                     className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 >
-                    <ChevronLeftIcon className="size-5" />
+                    <ChevronLeft className="size-5" />
                     Back to dashboard
                 </Link>
             </div>
@@ -117,9 +117,9 @@ export const SignInForm = () => {
                                             className="absolute top-1/2 right-4 z-30 -translate-y-1/2 cursor-pointer"
                                         >
                                             {showPassword ? (
-                                                <EyeIcon className="size-5 fill-gray-500 dark:fill-gray-400" />
+                                                <EyeIcon className="size-5" />
                                             ) : (
-                                                <EyeCloseIcon className="size-5 fill-gray-500 dark:fill-gray-400" />
+                                                <EyeClosedIcon className="size-5" />
                                             )}
                                         </span>
                                     </div>
