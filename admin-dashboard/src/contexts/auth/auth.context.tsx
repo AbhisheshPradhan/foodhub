@@ -3,7 +3,7 @@ import type { User } from "@shared/types/user";
 
 interface AuthContextType {
     user: User | null;
-    // login: (credentials: LoginResponseDto) => Promise<void>;
+    login: (credentials: LoginCredentials) => Promise<void>;
     // signup: (credentials: SignUpResponseDto) => Promise<void>;
     // logout: () => Promise<void>;
     // isLoading: boolean;

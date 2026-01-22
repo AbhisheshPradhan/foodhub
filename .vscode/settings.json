@@ -28,5 +28,6 @@
 	},
 	"[css]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	}
+	},
+	"headwind.runOnSave": true
 }

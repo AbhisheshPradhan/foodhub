@@ -27,20 +27,35 @@ services:
         depends_on:
             - db
 
-    admin-dashboard:
+    # admin-dashboard:
+    #     build:
+    #         context: .
+    #         dockerfile: admin-dashboard/Dockerfile
+    #     ports:
+    #         - "3000:3000"
+    #     volumes:
+    #         - ./admin-dashboard:/app
+    #         - ./shared:/app/shared
+    #         - /app/node_modules
+    #     environment:
+    #         CHOKIDAR_USEPOLLING: "true"
+    #         # API URL remains localhost because the request originates from the browser on your host machine
+    #         VITE_API_URL: "http://localhost:4000"
+    #     stdin_open: true
+    #     tty: true
+
+    app:
         build:
             context: .
-            dockerfile: admin-dashboard/Dockerfile
+            dockerfile: app/Dockerfile
         ports:
             - "3000:3000"
         volumes:
-            - ./admin-dashboard:/app
+            - ./app:/app
             - ./shared:/app/shared
             - /app/node_modules
         environment:
             CHOKIDAR_USEPOLLING: "true"
-            # API URL remains localhost because the request originates from the browser on your host machine
-            VITE_API_URL: "http://localhost:4000"
         stdin_open: true
         tty: true
 

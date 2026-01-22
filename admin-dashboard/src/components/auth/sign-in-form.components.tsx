@@ -1,25 +1,100 @@
 import { useState } from "react";
 import { Link } from "react-router";
 
-import { ChevronLeft, EyeClosedIcon, EyeIcon } from "lucide-react";
-import { Label, Checkbox, Input } from "@components/form";
+import { EyeClosedIcon, EyeIcon, LoaderCircle } from "lucide-react";
+import { Label, Input } from "@components/form";
 import { Button } from "@components/ui";
 
 export const SignInForm = () => {
+    const [email, setEmail] = useState("");
+    const [emailError, setEmailError] = useState(false);
+    const [emailHint, setEmailHint] = useState("");
+
+    const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [isChecked, setIsChecked] = useState(false);
+    const [passwordError, setPasswordError] = useState(false);
+    const [passwordHint, setPasswordHint] = useState("");
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    const handleSignIn = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setError("");
+        setIsLoading(true);
+
+        if (validateInputs()) {
+            try {
+                console.log("signing in");
+                // await signIn({ username, password });
+                setIsLoading(false);
+            } catch (err) {
+                setError("Invalid Username or Password");
+                setIsLoading(false);
+                console.error(err);
+            }
+        } else {
+            setIsLoading(false);
+        }
+    };
+
+    const validateInputs = () => {
+        let isValidInput = true;
+        if (!email) {
+            setEmailError(true);
+            setEmailHint("Email is required");
+            isValidInput = false;
+        }
+        if (email && !isValidEmail(email)) {
+            setEmailError(true);
+            setEmailHint("Invalid email");
+            isValidInput = false;
+        }
+        if (!password) {
+            setPasswordError(true);
+            setPasswordHint("Password is required");
+            isValidInput = false;
+        }
+        if (password && (password.length < 8 || password.length > 16)) {
+            setPasswordError(true);
+            setPasswordHint("Password must be 8-16 characters");
+            isValidInput = false;
+        }
+
+        return isValidInput;
+    };
+
+    const isValidEmail = (email: string) => {
+        // A common regex pattern for email format
+        const regex =
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return regex.test(String(email).toLowerCase());
+    };
+
+    const handleEmailChange = (value: string) => {
+        setEmail(value);
+        setEmailError(false);
+        setEmailHint("");
+
+        if (!value) {
+            setEmailError(true);
+            setEmailHint("Email is required");
+        }
+    };
+
+    const handlePasswordChange = (value: string) => {
+        setPassword(value);
+        setPasswordError(false);
+        setPasswordHint("");
+
+        if (!value) {
+            setPasswordError(true);
+            setPasswordHint("Password is required");
+        }
+    };
 
     return (
         <div className="flex flex-1 flex-col">
-            <div className="mx-auto w-full max-w-md pt-10">
-                <Link
-                    to="/"
-                    className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                >
-                    <ChevronLeft className="size-5" />
-                    Back to dashboard
-                </Link>
-            </div>
             <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
                 <div>
                     <div className="mb-5 sm:mb-8">
@@ -32,7 +107,10 @@ export const SignInForm = () => {
                     </div>
                     <div>
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-1 sm:gap-5">
-                            <button className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 text-sm font-normal text-gray-700 transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
+                            <button
+                                type="button"
+                                className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 text-sm font-normal text-gray-700 transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10"
+                            >
                                 <svg
                                     width="20"
                                     height="20"
@@ -83,19 +161,28 @@ export const SignInForm = () => {
                                 </span>
                             </div>
                         </div>
-                        <form>
+                        <form onSubmit={handleSignIn}>
                             <div className="space-y-6">
                                 <div>
-                                    <Label>
+                                    <Label htmlFor="email">
                                         Email{" "}
                                         <span className="text-error-500">
                                             *
                                         </span>{" "}
                                     </Label>
-                                    <Input placeholder="info@gmail.com" />
+                                    <Input
+                                        id="email"
+                                        placeholder="info@gmail.com"
+                                        value={email}
+                                        onChange={(e) =>
+                                            handleEmailChange(e.target.value)
+                                        }
+                                        error={emailError}
+                                        hint={emailHint}
+                                    />
                                 </div>
                                 <div>
-                                    <Label>
+                                    <Label htmlFor="password">
                                         Password{" "}
                                         <span className="text-error-500">
                                             *
@@ -103,46 +190,67 @@ export const SignInForm = () => {
                                     </Label>
                                     <div className="relative">
                                         <Input
+                                            id="password"
                                             type={
                                                 showPassword
                                                     ? "text"
                                                     : "password"
                                             }
                                             placeholder="Enter your password"
+                                            value={password}
+                                            onChange={(e) =>
+                                                handlePasswordChange(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            minLength={"8"}
+                                            maxLength={"16"}
+                                            error={passwordError}
+                                            hint={passwordHint}
                                         />
-                                        <span
+                                        <button
+                                            type="button"
                                             onClick={() =>
                                                 setShowPassword(!showPassword)
                                             }
-                                            className="absolute top-1/2 right-4 z-30 -translate-y-1/2 cursor-pointer"
+                                            className={`absolute top-1/2 right-4 z-30 ${!passwordError ? "-translate-y-2" : "-translate-y-5"} cursor-pointer`}
+                                            aria-label={
+                                                showPassword
+                                                    ? "Hide password"
+                                                    : "Show password"
+                                            }
                                         >
                                             {showPassword ? (
                                                 <EyeIcon className="size-5" />
                                             ) : (
                                                 <EyeClosedIcon className="size-5" />
                                             )}
-                                        </span>
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <Checkbox
-                                            checked={isChecked}
-                                            onChange={setIsChecked}
-                                        />
-                                        <span className="text-theme-sm block font-normal text-gray-700 dark:text-gray-400">
-                                            Keep me logged in
-                                        </span>
+                                {error && (
+                                    <div className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+                                        {error}
                                     </div>
+                                )}
+                                {/* <div className="flex">
                                     <Link
                                         to="/reset-password"
                                         className="text-brand-500 hover:text-brand-600 dark:text-brand-400 text-sm"
                                     >
                                         Forgot password?
                                     </Link>
-                                </div>
+                                </div> */}
                                 <div>
-                                    <Button className="w-full" size="sm">
+                                    <Button
+                                        className="w-full"
+                                        size="sm"
+                                        type="submit"
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading && (
+                                            <LoaderCircle className="size-5 animate-spin" />
+                                        )}
                                         Sign in
                                     </Button>
                                 </div>
@@ -151,7 +259,7 @@ export const SignInForm = () => {
 
                         <div className="mt-5">
                             <p className="text-center text-sm font-normal text-gray-700 sm:text-start dark:text-gray-400">
-                                Don&apos;t have an account? {""}
+                                {`Don't have an account? `}
                                 <Link
                                     to="/signup"
                                     className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
