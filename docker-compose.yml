@@ -44,14 +44,14 @@ services:
     #     stdin_open: true
     #     tty: true
 
-    app:
+    frontend:
         build:
             context: .
-            dockerfile: app/Dockerfile
+            dockerfile: frontend/Dockerfile
         ports:
             - "3000:3000"
         volumes:
-            - ./app:/app
+            - ./frontend:/app
             - ./shared:/app/shared
             - /app/node_modules
         environment:
