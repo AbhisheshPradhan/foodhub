@@ -137,7 +137,6 @@ const signUp = async (req: Request, res: Response) => {
 			user: {
 				id: result.user.id,
 				name: result.user.name,
-				role: result.user.role,
 				email: result.user.email,
 			},
 			restaurant: result.restaurant,
@@ -184,4 +183,9 @@ const me = async (req: AuthRequest, res: Response) => {
 	}
 };
 
-export const authController = { login, signUp, logout, me };
+export const authController = {
+	login,
+	signUp,
+	logout,
+	me,
+};

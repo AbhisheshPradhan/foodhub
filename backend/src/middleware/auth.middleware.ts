@@ -1,32 +1,38 @@
 import { Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
 
-import { config } from "../utils/config.js";
 import { AuthRequest } from "../controllers/auth.controller.js";
 import { ErrorMessages, responseWrapper } from "../utils/api-response.js";
+import { verifyToken } from "../lib/aws.js";
 
-export const authenticate = (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction,
+export const authenticate = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
 ) => {
-    const token = req?.cookies?.token;
+	const accessToken = req.cookies?.accessToken;
+	const idToken = req.cookies?.idToken;
 
-    if (!token)
-        return res
-            .status(401)
-            .json(responseWrapper.error(ErrorMessages.NOT_AUTHENTICATED));
+	if (!accessToken) {
+		return res
+			.status(401)
+			.json(responseWrapper.error(ErrorMessages.NOT_AUTHENTICATED));
+	}
 
-    try {
-        const decoded = jwt.verify(token, config.jwt.secret) as {
-            userId: number;
-        };
-        req.userId = decoded.userId;
-        next();
-    } catch (error) {
-        console.error("token error:", error);
-        return res
-            .status(401)
-            .json(responseWrapper.error(ErrorMessages.INVALID_TOKEN));
-    }
+	try {
+		const decodedAccessToken = await verifyToken(accessToken, "access");
+		req.cognitoSub = decodedAccessToken.sub;
+
+		if (idToken) {
+			const decodedIdToken = await verifyToken(idToken, "id");
+			req.email = decodedIdToken.email;
+			req.name = decodedIdToken.name;
+		}
+
+		next();
+	} catch (error) {
+		console.error("token error:", error);
+		return res
+			.status(401)
+			.json(responseWrapper.error(ErrorMessages.INVALID_TOKEN));
+	}
 };

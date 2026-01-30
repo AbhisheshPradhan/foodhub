@@ -5,7 +5,7 @@ export default function AuthLayout({
 }) {
 	return (
 		<div className="relative flex items-center justify-center min-h-screen">
-			<div className="z-10 w-full max-w-md p-8 bg-white shadow-xl rounded-2xl">
+			<div className="z-10 w-full max-w-md p-8 bg-white  rounded-2xl md:shadow-xl">
 				{children}
 			</div>
 		</div>

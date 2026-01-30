@@ -1,5 +1,5 @@
 import type React from "react";
-import type { FC } from "react";
+import type { FC, ReactNode } from "react";
 
 interface TextInputProps {
 	type?: "text" | "number" | "email" | "password" | "date" | "time" | string;
@@ -18,6 +18,8 @@ interface TextInputProps {
 	success?: boolean;
 	error?: boolean;
 	hint?: string;
+	startIcon?: ReactNode;
+	endIcon?: ReactNode;
 }
 
 export const TextInput: FC<TextInputProps> = ({
@@ -37,6 +39,8 @@ export const TextInput: FC<TextInputProps> = ({
 	success = false,
 	error = false,
 	hint,
+	startIcon,
+	endIcon,
 }) => {
 	let inputClasses = ` h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3  dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
 
@@ -65,7 +69,7 @@ export const TextInput: FC<TextInputProps> = ({
 				maxLength={maxLength}
 				step={step}
 				disabled={disabled}
-				className={inputClasses}
+				className={`${inputClasses} ${startIcon && "pl-[62px]"}`}
 			/>
 
 			{hint && (
@@ -80,6 +84,11 @@ export const TextInput: FC<TextInputProps> = ({
 				>
 					{hint}
 				</p>
+			)}
+			{startIcon && (
+				<span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+					{startIcon}
+				</span>
 			)}
 		</div>
 	);

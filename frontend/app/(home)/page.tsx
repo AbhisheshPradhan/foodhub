@@ -3,7 +3,6 @@ import Link from "next/link";
 export default function HomePage() {
 	return (
 		<main className="min-h-screen bg-gray-50">
-			{/* Hero Section */}
 			<section className="px-4 py-20 text-center">
 				<div className="max-w-3xl mx-auto">
 					<h1 className="mb-4 font-bold text-gray-900 text-title-xl">
@@ -15,7 +14,7 @@ export default function HomePage() {
 					</p>
 					<div className="flex flex-col justify-center gap-4 sm:flex-row">
 						<Link
-							href="/designer"
+							href="/dashboard"
 							className="px-6 py-3 font-medium text-white transition-colors rounded-lg bg-brand-500 hover:bg-brand-600"
 						>
 							Try Menu Designer
@@ -30,7 +29,6 @@ export default function HomePage() {
 				</div>
 			</section>
 
-			{/* Features Section */}
 			<section
 				id="features"
 				className="px-4 py-16 bg-white"
@@ -79,7 +77,6 @@ export default function HomePage() {
 				</div>
 			</section>
 
-			{/* Footer */}
 			<footer className="px-4 py-8 text-sm text-center text-gray-500">
 				<p>FoodHub - Digital Menu Platform</p>
 			</footer>
