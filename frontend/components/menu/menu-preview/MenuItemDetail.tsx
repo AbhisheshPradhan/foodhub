@@ -40,12 +40,10 @@ export const MenuItemDetail = ({
 						</span>
 					</div>
 
-					{/* Description */}
 					<p className="mt-1.5 text-[12px] leading-relaxed text-gray-600">
 						{item.description}
 					</p>
 
-					{/* Info row */}
 					<div className="mt-3 flex flex-wrap items-center gap-2">
 						{item.isSpicy && (
 							<SpiceIndicator level={item.spiceLevel} />

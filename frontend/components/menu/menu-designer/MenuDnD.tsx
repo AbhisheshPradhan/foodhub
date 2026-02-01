@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
 	DndContext,
 	DragOverlay,
@@ -19,26 +19,32 @@ import {
 	verticalListSortingStrategy,
 	arrayMove,
 } from "@dnd-kit/sortable";
-import { Plus } from "lucide-react";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
 import { MenuDesignerToolbar } from "./MenuDesignerToolbar";
 import { MenuItemOverlay } from "./MenuItemOverlay";
 import { CategoryOverlay } from "./CategoryOverlay";
 import { SortableCategory } from "./SortableCategory";
-import { MenuCategory, MenuItem } from "@/types";
 import { AddCategoryModal } from "./AddCategoryModal";
+import { AddMenuItemModal } from "./add-menu-item/AddMenuItemModal";
+import { EditableMenuItem, MenuCategory, MenuItem } from "@/types";
 
 export function MenuDnD() {
-	const { selectedRestaurant, setDesignerActiveCategoryId } =
+	const { isLoading, selectedRestaurant, setDesignerActiveCategoryId } =
 		useRestaurants();
 
 	const [initialCategories, setInitialCategories] = useState<MenuCategory[]>(
-		(selectedRestaurant?.categories ?? []) as MenuCategory[],
+		[],
 	);
 
-	const [categories, setCategories] =
-		useState<MenuCategory[]>(initialCategories);
+	const [categories, setCategories] = useState<MenuCategory[]>([]);
+
+	useEffect(() => {
+		if (!isLoading && selectedRestaurant?.categories) {
+			setCategories(selectedRestaurant.categories);
+			setInitialCategories(selectedRestaurant.categories);
+		}
+	}, [isLoading, selectedRestaurant?.categories]);
 
 	const [openCategories, setOpenCategories] = useState<Set<number>>(
 		new Set(),
@@ -47,6 +53,7 @@ export function MenuDnD() {
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+	const [isAddMenuItemOpen, setIsAddMenuItemOpen] = useState(false);
 
 	const [hasOrderChanges, setHasOrderChanges] = useState<boolean>(false);
 
@@ -137,6 +144,25 @@ export function MenuDnD() {
 			setInitialCategories((prev) => [...prev, newCategory]);
 		},
 		[categories.length],
+	);
+
+	const handleAddMenuItems = useCallback(
+		(items: EditableMenuItem[], targetCategoryId: number) => {
+			setCategories((prev) =>
+				prev.map((cat) => {
+					if (cat.id !== targetCategoryId) return cat;
+					const newItems: MenuItem[] = items.map((item, index) => ({
+						...item,
+						id: Date.now() + index,
+					}));
+					return {
+						...cat,
+						menuItems: [...cat.menuItems, ...newItems],
+					};
+				}),
+			);
+		},
+		[],
 	);
 
 	const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -299,11 +325,17 @@ export function MenuDnD() {
 		}
 	}
 
+	if (isLoading) {
+		return null;
+	}
+
 	return (
 		<div className="flex flex-col gap-4">
 			<MenuDesignerToolbar
 				onSaveOrder={handleSaveOrder}
 				onResetOrder={handleResetOrder}
+				onAddCategory={() => setIsAddCategoryOpen(true)}
+				onAddMenuItem={() => setIsAddMenuItemOpen(true)}
 				onToggleAll={handleToggleAll}
 				allCollapsed={allCollapsed}
 				isSaving={isSaving}
@@ -329,14 +361,6 @@ export function MenuDnD() {
 								onToggle={() => toggleCategory(category.id)}
 							/>
 						))}
-						<button
-							type="button"
-							onClick={() => setIsAddCategoryOpen(true)}
-							className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 py-3 text-sm font-medium text-gray-500 hover:border-brand-400 hover:text-brand-600 transition-colors"
-						>
-							<Plus size={16} />
-							Add Category
-						</button>
 					</div>
 				</SortableContext>
 
@@ -347,6 +371,13 @@ export function MenuDnD() {
 				isOpen={isAddCategoryOpen}
 				onClose={() => setIsAddCategoryOpen(false)}
 				onSave={handleAddCategory}
+			/>
+
+			<AddMenuItemModal
+				isOpen={isAddMenuItemOpen}
+				onClose={() => setIsAddMenuItemOpen(false)}
+				onSave={handleAddMenuItems}
+				categories={categories}
 			/>
 		</div>
 	);

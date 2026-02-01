@@ -20,6 +20,7 @@ interface TextInputProps {
 	hint?: string;
 	startIcon?: ReactNode;
 	endIcon?: ReactNode;
+	tabIndex?: number;
 }
 
 export const TextInput: FC<TextInputProps> = ({
@@ -41,6 +42,7 @@ export const TextInput: FC<TextInputProps> = ({
 	hint,
 	startIcon,
 	endIcon,
+	tabIndex,
 }) => {
 	let inputClasses = ` h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3  dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
 
@@ -70,6 +72,7 @@ export const TextInput: FC<TextInputProps> = ({
 				step={step}
 				disabled={disabled}
 				className={`${inputClasses} ${startIcon && "pl-[62px]"}`}
+				tabIndex={tabIndex}
 			/>
 
 			{hint && (

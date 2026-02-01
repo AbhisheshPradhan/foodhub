@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 import { AppNav } from "@/components/layouts/AppNav";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RestaurantProvider } from "@/contexts/RestaurantContext";
+import { DashboardPreviewSection } from "@/components/layouts/DashboardPreviewSection";
+import { DashboardSidebar } from "@/components/layouts/DashboardSidebar";
+import { PathTracker } from "@/components/common/PathTracker";
 
 export const metadata: Metadata = {
 	title: "Dashboard | Foodhub",
@@ -29,7 +32,14 @@ export default async function DashboardLayout({
 			<AuthProvider>
 				<RestaurantProvider>
 					<AppNav />
-					{children}
+					<div className="flex max-w-7xl h-[calc(100vh-85px)] mx-auto">
+						<DashboardSidebar />
+						<PathTracker href="/dashboard" />
+						<main className="min-w-0 flex-1 overflow-y-hidden p-6 max-w-3xl">
+							{children}
+						</main>
+						<DashboardPreviewSection />
+					</div>
 				</RestaurantProvider>
 			</AuthProvider>
 		</>

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
 	BookOpen,
 	Store,
@@ -9,41 +11,37 @@ import {
 	QrCodeIcon,
 } from "lucide-react";
 
-export type DashboardPanel =
-	| "menu-designer"
+export type DashboardPanelHref =
+	| "designer"
 	| "restaurant-details"
 	| "preferences"
 	| "branding"
-	| "qr-code-editor";
+	| "qr";
 
 const sidebarItems: {
 	label: string;
-	panel: DashboardPanel;
+	href: DashboardPanelHref;
 	icon: LucideIcon;
 }[] = [
-	{ label: "Menu Designer", panel: "menu-designer", icon: BookOpen },
-	{ label: "Restaurant Details", panel: "restaurant-details", icon: Store },
-	{ label: "Preferences", panel: "preferences", icon: SlidersHorizontal },
-	{ label: "Branding", panel: "branding", icon: Palette },
-	{ label: "QR Code Editor", panel: "qr-code-editor", icon: QrCodeIcon },
+	{ label: "Menu Designer", href: "designer", icon: BookOpen },
+	{ label: "Restaurant Details", href: "restaurant-details", icon: Store },
+	{ label: "Preferences", href: "preferences", icon: SlidersHorizontal },
+	{ label: "Branding", href: "branding", icon: Palette },
+	{ label: "QR Code Editor", href: "qr", icon: QrCodeIcon },
 ];
 
-export const DashboardSidebar = ({
-	activePanel,
-	onSelect,
-}: {
-	activePanel: DashboardPanel;
-	onSelect: (panel: DashboardPanel) => void;
-}) => {
+export const DashboardSidebar = () => {
+	const pathname = usePathname();
+
 	return (
 		<aside className="w-56 shrink-0 border-r border-gray-200 dark:border-gray-800">
 			<nav className="space-y-1 p-4">
 				{sidebarItems.map((item) => {
-					const isActive = activePanel === item.panel;
+					const isActive = pathname === `/dashboard/${item.href}`;
 					return (
-						<button
-							key={item.panel}
-							onClick={() => onSelect(item.panel)}
+						<Link
+							key={item.href}
+							href={`/dashboard/${item.href}`}
 							className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
 								isActive
 									? "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white"
@@ -52,7 +50,7 @@ export const DashboardSidebar = ({
 						>
 							<item.icon className="h-5 w-5" />
 							{item.label}
-						</button>
+						</Link>
 					);
 				})}
 			</nav>

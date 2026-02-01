@@ -37,7 +37,7 @@ export const SetupDetails: React.FC<SetupDetailsProps> = ({
 				<form onSubmit={handleStepChange}>
 					<div className="space-y-6">
 						<div>
-							<Label htmlFor="ame">
+							<Label htmlFor="name">
 								Restaurant Name{" "}
 								<span className="text-error-500">*</span>{" "}
 							</Label>

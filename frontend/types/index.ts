@@ -32,6 +32,8 @@ export interface MenuItem {
 	modifiers: Modifier[];
 }
 
+export type EditableMenuItem = Omit<MenuItem, "id">;
+
 export interface MenuCategory {
 	id: number;
 	name: string;
