@@ -4,6 +4,7 @@ import { prisma } from "../lib/prisma.js";
 import { ErrorMessages, responseWrapper } from "../utils/api-response.js";
 
 import { verifyToken } from "../lib/aws.js";
+import { AuthRequest } from "./auth.controller.js";
 
 export const createRestaurant = async (req: Request, res: Response) => {
 	try {
@@ -265,9 +266,10 @@ export const createRestaurant = async (req: Request, res: Response) => {
 // 	}
 // };
 
-export const getUserRestaurants = async (req: Request, res: Response) => {
+export const getUserRestaurants = async (req: AuthRequest, res: Response) => {
 	try {
-		const cognitoSub = req.cognitoSub;
+		console.log("getUserRestaurants req.user?", req.user);
+		const cognitoSub = req.user?.sub;
 
 		if (!cognitoSub) {
 			return res.status(401).json({ message: "Unauthorized" });

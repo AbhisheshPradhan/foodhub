@@ -10,6 +10,8 @@ services:
             - "5432:5432"
         volumes:
             - postgres_data:/var/lib/postgresql/data/
+        networks:
+            - app-network
 
     backend:
         build:
@@ -25,6 +27,14 @@ services:
             - /app/node_modules
         depends_on:
             - db
+        networks:
+            - app-network
+        dns:
+            - 8.8.8.8
+            - 8.8.4.4
+            - 1.1.1.1
+        sysctls:
+            - net.ipv6.conf.all.disable_ipv6=0
         command: sh -c "npx prisma migrate dev && npx prisma generate && npm run dev"
 
     frontend:
@@ -41,6 +51,14 @@ services:
             CHOKIDAR_USEPOLLING: "true"
         stdin_open: true
         tty: true
+        networks:
+            - app-network
 
 volumes:
     postgres_data:
+
+networks:
+    app-network:
+        driver: bridge
+        driver_opts:
+            com.docker.network.bridge.name: br-foodhub

@@ -16,7 +16,6 @@ const userPool = new CognitoUserPool(poolData);
 export function getCognitoUser() {
 	return new Promise((resolve, reject) => {
 		const cognitoUser = userPool.getCurrentUser();
-
 		if (!cognitoUser) {
 			document.cookie = "accessToken=; path=/; max-age=0";
 			document.cookie = "idToken=; path=/; max-age=0";
@@ -24,59 +23,30 @@ export function getCognitoUser() {
 			return;
 		}
 
-		cognitoUser.getSession((error, session) => {
+		cognitoUser.getSession((error, session: CognitoUserSession) => {
 			if (error) {
 				reject(error);
 				return;
 			}
 
+			const accessToken = session.getAccessToken().getJwtToken();
+			const idToken = session.getIdToken().getJwtToken();
+			document.cookie = `accessToken=${encodeURIComponent(accessToken)}; path=/; max-age=${60 * 60 * 24}`;
+			document.cookie = `idToken=${encodeURIComponent(idToken)}; path=/; max-age=${60 * 60 * 24}`;
+
 			// If session is valid, just return tokens
-			if (session.isValid()) {
-				const accessToken = session.getAccessToken().getJwtToken();
-				const idToken = session.getIdToken().getJwtToken();
-				document.cookie = `accessToken=${accessToken}; path=/; max-age=${60 * 60 * 24}`;
-				document.cookie = `idToken=${idToken}; path=/; max-age=${60 * 60 * 24}`;
-
-				cognitoUser.getUserAttributes((err, attributes) => {
-					if (err) {
-						reject(err);
-					}
-
-					const user: Record<string, string> = {};
-					attributes?.forEach((attr) => {
-						user[attr.Name] = attr.Value;
-					});
-					resolve(user);
-				});
-				return;
-			}
-
-			// Session expired → refresh
-			const refreshToken = session.getRefreshToken();
-			cognitoUser.refreshSession(refreshToken, (err, newSession) => {
+			cognitoUser.getUserAttributes((err, attributes) => {
 				if (err) {
 					reject(err);
-					return;
 				}
 
-				const accessToken = newSession.getAccessToken().getJwtToken();
-				const idToken = newSession.getIdToken().getJwtToken();
-				document.cookie = `accessToken=${accessToken}; path=/; max-age=${60 * 60 * 24}`;
-				document.cookie = `idToken=${idToken}; path=/; max-age=${60 * 60 * 24}`;
-
-				cognitoUser.getUserAttributes((attrErr, attributes) => {
-					if (attrErr) {
-						reject(attrErr);
-						return;
-					}
-
-					const user: Record<string, string> = {};
-					attributes?.forEach((attr) => {
-						user[attr.Name] = attr.Value;
-					});
-					resolve(user);
+				const user: Record<string, string> = {};
+				attributes?.forEach((attr) => {
+					user[attr.Name] = attr.Value;
 				});
+				resolve(user);
 			});
+			return;
 		});
 	});
 }

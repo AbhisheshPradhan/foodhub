@@ -13,7 +13,11 @@ import {
 } from "@shared/types/user.js";
 
 export interface AuthRequest extends Request {
-	userId?: number;
+	user?: {
+		sub: string;
+		email?: string;
+		name?: string;
+	};
 }
 
 const loginSchema = Joi.object({

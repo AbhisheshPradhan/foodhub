@@ -2,23 +2,22 @@ import { Request, Response } from "express";
 import { prisma } from "../lib/prisma.js";
 import { ErrorMessages, responseWrapper } from "../utils/api-response.js";
 import { LoginResponseDto, SignUpResponseDto } from "@shared/types/user.js";
+import { AuthRequest } from "./auth.controller.js";
 
 export const getAllUsers = async (req: Request, res: Response) => {
 	const users = await prisma.user.findMany();
 	res.json({ success: true, data: users });
 };
 
-export const getOrCreateUser = async (req: Request, res: Response) => {
+export const getOrCreateUser = async (req: AuthRequest, res: Response) => {
 	try {
-		const cognitoSub = req.cognitoSub;
-
+		const cognitoSub = req.user?.sub;
 		if (!cognitoSub) {
 			return res
-				.status(500)
-				.json(responseWrapper.error(ErrorMessages.DEFAULT));
+				.status(401)
+				.json(responseWrapper.error(ErrorMessages.NOT_AUTHENTICATED));
 		}
 
-		// Check if user already exists
 		let user = await prisma.user.findUnique({
 			where: { cognitoSub },
 		});
@@ -32,11 +31,17 @@ export const getOrCreateUser = async (req: Request, res: Response) => {
 			return res.status(200).json(responseWrapper.success(resObj));
 		}
 
-		// Create new user directly
-		const { name, email } = req;
+		const { email, name } = req.user;
+
+		if (!email) {
+			return res
+				.status(400)
+				.json(responseWrapper.error("Email is required"));
+		}
+
 		user = await prisma.user.create({
 			data: {
-				name,
+				name: name || email.split("@")[0],
 				email,
 				cognitoSub,
 				isActive: true,
@@ -55,7 +60,6 @@ export const getOrCreateUser = async (req: Request, res: Response) => {
 		return res.status(500).json(responseWrapper.error());
 	}
 };
-
 export const userController = {
 	getAllUsers,
 	getOrCreateUser,
