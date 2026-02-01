@@ -1,58 +1,30 @@
 "use client";
 
-import {
-	Save,
-	RotateCcw,
-	ChevronsDownUp,
-	ChevronsUpDown,
-	Plus,
-} from "lucide-react";
+import { Save, ChevronsDownUp, ChevronsUpDown, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 
 interface MenuDesignerToolbarProps {
-	onSaveOrder: () => void;
-	onResetOrder: () => void;
+	onSave: () => void;
 	onAddCategory: () => void;
 	onAddMenuItem: () => void;
 	onToggleAll: () => void;
 	allCollapsed: boolean;
 	isSaving?: boolean;
-	hasOrderChanges?: boolean;
+	hasChanges?: boolean;
 }
 
 export const MenuDesignerToolbar: React.FC<MenuDesignerToolbarProps> = ({
-	onSaveOrder,
-	onResetOrder,
+	onSave,
 	onAddCategory,
 	onAddMenuItem,
 	onToggleAll,
 	allCollapsed,
 	isSaving = false,
-	hasOrderChanges = false,
+	hasChanges = false,
 }) => {
 	return (
 		<div className="flex items-center gap-2">
-			<Button
-				size="xs"
-				variant="primary"
-				startIcon={<Save size={16} />}
-				onClick={onSaveOrder}
-				disabled={isSaving || !hasOrderChanges}
-			>
-				{isSaving ? "Saving..." : "Save Order"}
-			</Button>
-
-			<Button
-				size="xs"
-				variant="outline"
-				startIcon={<RotateCcw size={16} />}
-				onClick={onResetOrder}
-				disabled={isSaving || !hasOrderChanges}
-			>
-				Reset Order
-			</Button>
-
 			<Button
 				size="xs"
 				variant="primary"
@@ -69,6 +41,16 @@ export const MenuDesignerToolbar: React.FC<MenuDesignerToolbarProps> = ({
 				onClick={onAddMenuItem}
 			>
 				Add Item
+			</Button>
+
+			<Button
+				size="xs"
+				variant="primary"
+				startIcon={<Save size={16} />}
+				onClick={onSave}
+				disabled={isSaving || !hasChanges}
+			>
+				{isSaving ? "Saving..." : "Save Changes"}
 			</Button>
 
 			<button

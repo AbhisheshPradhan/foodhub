@@ -33,16 +33,11 @@ export function MenuDnD() {
 	const { isLoading, selectedRestaurant, setDesignerActiveCategoryId } =
 		useRestaurants();
 
-	const [initialCategories, setInitialCategories] = useState<MenuCategory[]>(
-		[],
-	);
-
 	const [categories, setCategories] = useState<MenuCategory[]>([]);
 
 	useEffect(() => {
 		if (!isLoading && selectedRestaurant?.categories) {
 			setCategories(selectedRestaurant.categories);
-			setInitialCategories(selectedRestaurant.categories);
 		}
 	}, [isLoading, selectedRestaurant?.categories]);
 
@@ -52,10 +47,9 @@ export function MenuDnD() {
 
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
+	const [hasChanges, setHasChanges] = useState(false);
 	const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 	const [isAddMenuItemOpen, setIsAddMenuItemOpen] = useState(false);
-
-	const [hasOrderChanges, setHasOrderChanges] = useState<boolean>(false);
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -104,21 +98,16 @@ export function MenuDnD() {
 		});
 	}, []);
 
-	const handleSaveOrder = useCallback(async () => {
+	const handleSave = useCallback(async () => {
 		setIsSaving(true);
 		try {
 			// TODO: call API to persist the new display order
 			console.log("Saving order…", categories);
-			setHasOrderChanges(false);
+			setHasChanges(false);
 		} finally {
 			setIsSaving(false);
 		}
 	}, [categories]);
-
-	const handleResetOrder = useCallback(() => {
-		setCategories(initialCategories);
-		setHasOrderChanges(false);
-	}, [initialCategories]);
 
 	const allCollapsed = openCategories.size === 0;
 
@@ -141,7 +130,7 @@ export function MenuDnD() {
 				menuItems: [],
 			};
 			setCategories((prev) => [...prev, newCategory]);
-			setInitialCategories((prev) => [...prev, newCategory]);
+			setHasChanges(true);
 		},
 		[categories.length],
 	);
@@ -161,6 +150,7 @@ export function MenuDnD() {
 					};
 				}),
 			);
+			setHasChanges(true);
 		},
 		[],
 	);
@@ -248,8 +238,7 @@ export function MenuDnD() {
 
 			if (!over || active.id === over.id) return;
 
-			setHasOrderChanges(true);
-
+			setHasChanges(true);
 			const activeIdStr = String(active.id);
 			const overIdStr = String(over.id);
 
@@ -304,6 +293,12 @@ export function MenuDnD() {
 		[findCategoryByItemId],
 	);
 
+	if (isLoading) {
+		return (
+			<p className="py-8 text-center text-sm text-gray-500">Loading...</p>
+		);
+	}
+
 	if (!selectedRestaurant) {
 		return (
 			<p className="py-8 text-center text-sm text-gray-500">
@@ -325,21 +320,15 @@ export function MenuDnD() {
 		}
 	}
 
-	if (isLoading) {
-		return null;
-	}
-
 	return (
 		<div className="flex flex-col gap-4">
 			<MenuDesignerToolbar
-				onSaveOrder={handleSaveOrder}
-				onResetOrder={handleResetOrder}
+				onSave={handleSave}
 				onAddCategory={() => setIsAddCategoryOpen(true)}
 				onAddMenuItem={() => setIsAddMenuItemOpen(true)}
 				onToggleAll={handleToggleAll}
 				allCollapsed={allCollapsed}
-				isSaving={isSaving}
-				hasOrderChanges={hasOrderChanges}
+				isSaving={isSaving || hasChanges}
 			/>
 			<DndContext
 				sensors={sensors}

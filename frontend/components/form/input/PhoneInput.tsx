@@ -9,26 +9,29 @@ interface CountryCode {
 
 interface PhoneInputProps {
 	id: string;
+	value: string;
 	placeholder?: string;
 	onChange?: (phoneNumber: string) => void;
 	selectPosition?: "start" | "end";
 }
 
 const countries: CountryCode[] = [
-	{ code: "US", label: "+1" },
-	{ code: "GB", label: "+44" },
-	{ code: "CA", label: "+1" },
 	{ code: "AU", label: "+61" },
+	{ code: "NP", label: "+977" },
+	// { code: "US", label: "+1" },
+	// { code: "GB", label: "+44" },
+	// { code: "CA", label: "+1" },
 ];
 
 export const PhoneInput: React.FC<PhoneInputProps> = ({
 	id,
-	placeholder = "+1 (555) 000-0000",
+	value,
+	placeholder = "+61 451 123 123",
 	onChange,
 	selectPosition = "start",
 }) => {
 	const [selectedCountry, setSelectedCountry] = useState<string>("US");
-	const [phoneNumber, setPhoneNumber] = useState<string>("+1");
+	const [phoneNumber, setPhoneNumber] = useState<string>(value);
 
 	const countryCodes: Record<string, string> = countries.reduce(
 		(acc, { code, label }) => ({ ...acc, [code]: label }),

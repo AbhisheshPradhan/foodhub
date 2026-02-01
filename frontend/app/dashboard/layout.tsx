@@ -8,6 +8,7 @@ import { RestaurantProvider } from "@/contexts/RestaurantContext";
 import { DashboardPreviewSection } from "@/components/layouts/DashboardPreviewSection";
 import { DashboardSidebar } from "@/components/layouts/DashboardSidebar";
 import { PathTracker } from "@/components/common/PathTracker";
+import { GoogleMapsWrapper } from "@/components/layouts/GoogleMapsWrapper";
 
 export const metadata: Metadata = {
 	title: "Dashboard | Foodhub",
@@ -30,17 +31,19 @@ export default async function DashboardLayout({
 	return (
 		<>
 			<AuthProvider>
-				<RestaurantProvider>
-					<AppNav />
-					<div className="flex max-w-7xl h-[calc(100vh-85px)] mx-auto">
-						<DashboardSidebar />
-						<PathTracker href="/dashboard" />
-						<main className="min-w-0 flex-1 overflow-y-hidden p-6 max-w-3xl">
-							{children}
-						</main>
-						<DashboardPreviewSection />
-					</div>
-				</RestaurantProvider>
+				<GoogleMapsWrapper>
+					<RestaurantProvider>
+						<AppNav />
+						<div className="flex max-w-7xl h-[calc(100vh-85px)] mx-auto">
+							<DashboardSidebar />
+							<PathTracker href="/dashboard" />
+							<main className="min-w-0 flex-1 overflow-y-hidden p-6 max-w-3xl">
+								{children}
+							</main>
+							<DashboardPreviewSection />
+						</div>
+					</RestaurantProvider>
+				</GoogleMapsWrapper>
 			</AuthProvider>
 		</>
 	);
