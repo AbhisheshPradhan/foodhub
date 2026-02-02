@@ -16,6 +16,7 @@ export interface Modifier {
 
 export interface MenuItem {
 	id: number;
+	categoryId: number;
 	name: string;
 	description: string;
 	price: string;
@@ -32,15 +33,24 @@ export interface MenuItem {
 	modifiers: Modifier[];
 }
 
-export type EditableMenuItem = Omit<MenuItem, "id">;
+export type EditableMenuItem = Omit<MenuItem, "id"> & {
+	id?: number;
+	categoryId?: number;
+};
 
 export interface MenuCategory {
 	id: number;
 	name: string;
 	description: string;
 	displayOrder: number;
-	menuItems: MenuItem[];
+	menuItems: EditableMenuItem[];
 }
+
+export type EditableCategory = {
+	id?: number;
+	name: string;
+	description: string;
+};
 
 export interface Restaurant {
 	id: number;
@@ -52,5 +62,5 @@ export interface Restaurant {
 	facebook?: string;
 	instagram?: string;
 	tiktok?: string;
-	categories: MenuCategory[];
+	categories?: MenuCategory[];
 }

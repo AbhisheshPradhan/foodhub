@@ -5,9 +5,12 @@ import { Plus, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/form/input/Checkbox";
 import { COMMON_ALLERGENS } from "./nepaliMenuItems";
 
-import type { MenuItem, Allergen, Modifier, MenuCategory } from "@/types";
-
-type EditableMenuItem = Omit<MenuItem, "id">;
+import type {
+	Allergen,
+	Modifier,
+	MenuCategory,
+	EditableMenuItem,
+} from "@/types";
 
 export type MenuItemFormTab = "general" | "modifiers" | "dietary";
 
@@ -16,18 +19,15 @@ export const MenuItemForm = ({
 	onChange,
 	activeTab = "general",
 	categories,
-	targetCategoryId,
-	onTargetCategoryChange,
 	errors = {},
 }: {
 	item: EditableMenuItem;
 	onChange: (updated: EditableMenuItem) => void;
 	activeTab?: MenuItemFormTab;
 	categories: MenuCategory[];
-	targetCategoryId: number | null;
-	onTargetCategoryChange: (categoryId: number) => void;
 	errors?: { name?: boolean; price?: boolean; category?: boolean };
 }) => {
+	console.log("MenuItemForm item", item);
 	const updateField = <K extends keyof EditableMenuItem>(
 		field: K,
 		value: EditableMenuItem[K],
@@ -153,9 +153,12 @@ export const MenuItemForm = ({
 						</p>
 					) : (
 						<select
-							value={targetCategoryId ?? ""}
+							value={item.categoryId ?? null}
 							onChange={(e) =>
-								onTargetCategoryChange(Number(e.target.value))
+								updateField(
+									"categoryId",
+									Number(e.target.value),
+								)
 							}
 							className={`w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 ${
 								errors.category
@@ -163,12 +166,7 @@ export const MenuItemForm = ({
 									: "border-gray-300 focus:border-brand-500 focus:ring-brand-500"
 							}`}
 						>
-							<option
-								value=""
-								disabled
-							>
-								Select a category
-							</option>
+							<option value="">Select a category</option>
 							{categories.map((cat) => (
 								<option
 									key={cat.id}

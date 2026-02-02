@@ -127,7 +127,7 @@ export const SignInForm = () => {
 										Email{" "}
 										<span className="text-error-500">
 											*
-										</span>{" "}
+										</span>
 									</Label>
 									<TextInput
 										id="email"
@@ -145,7 +145,7 @@ export const SignInForm = () => {
 										Password{" "}
 										<span className="text-error-500">
 											*
-										</span>{" "}
+										</span>
 									</Label>
 									<div className="relative">
 										<TextInput

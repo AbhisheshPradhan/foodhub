@@ -26,8 +26,8 @@ import { MenuItemOverlay } from "./MenuItemOverlay";
 import { CategoryOverlay } from "./CategoryOverlay";
 import { SortableCategory } from "./SortableCategory";
 import { AddCategoryModal } from "./AddCategoryModal";
-import { AddMenuItemModal } from "./add-menu-item/AddMenuItemModal";
 import { EditableMenuItem, MenuCategory, MenuItem } from "@/types";
+import { MenuItemFormModal } from "./add-menu-item/MenuItemFormModal";
 
 export function MenuDnD() {
 	const { isLoading, selectedRestaurant, setDesignerActiveCategoryId } =
@@ -135,25 +135,20 @@ export function MenuDnD() {
 		[categories.length],
 	);
 
-	const handleAddMenuItems = useCallback(
-		(items: EditableMenuItem[], targetCategoryId: number) => {
-			setCategories((prev) =>
-				prev.map((cat) => {
-					if (cat.id !== targetCategoryId) return cat;
-					const newItems: MenuItem[] = items.map((item, index) => ({
-						...item,
-						id: Date.now() + index,
-					}));
-					return {
-						...cat,
-						menuItems: [...cat.menuItems, ...newItems],
-					};
-				}),
-			);
-			setHasChanges(true);
-		},
-		[],
-	);
+	const handleAddMenuItem = useCallback((item: EditableMenuItem) => {
+		console.log("handleAddMenuItem item", item);
+		setCategories((prev) =>
+			prev.map((cat) => {
+				if (cat.id !== item.categoryId) return cat;
+
+				return {
+					...cat,
+					menuItems: [...cat.menuItems, item],
+				};
+			}),
+		);
+		setHasChanges(true);
+	}, []);
 
 	const handleDragStart = useCallback((event: DragStartEvent) => {
 		setActiveId(String(event.active.id));
@@ -362,10 +357,11 @@ export function MenuDnD() {
 				onSave={handleAddCategory}
 			/>
 
-			<AddMenuItemModal
+			<MenuItemFormModal
+				// item={null}
 				isOpen={isAddMenuItemOpen}
 				onClose={() => setIsAddMenuItemOpen(false)}
-				onSave={handleAddMenuItems}
+				onSave={handleAddMenuItem}
 				categories={categories}
 			/>
 		</div>
