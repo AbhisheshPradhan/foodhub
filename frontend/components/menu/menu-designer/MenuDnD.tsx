@@ -52,7 +52,7 @@ export function MenuDnD() {
 	const [isAddMenuItemOpen, setIsAddMenuItemOpen] = useState(false);
 
 	const sensors = useSensors(
-		useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+		useSensor(PointerSensor),
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
 		}),

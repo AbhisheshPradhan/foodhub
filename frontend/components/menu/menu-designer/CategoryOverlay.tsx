@@ -5,9 +5,19 @@ import { ChevronDown, GripVertical } from "lucide-react";
 import { MenuCategory } from "@/types";
 
 export const CategoryOverlay = ({ category }: { category: MenuCategory }) => {
+	const overlayStyle = {
+		transform: "translate3d(5px, 5px, 0) scale(1.025)",
+		boxShadow:
+			"0 0 0 1px rgba(63, 63, 68, 0.05), 0 1px 6px 0 rgba(34, 33, 81, 0.3)",
+		cursor: "grabbing",
+	};
+
 	return (
-		<div className="rounded-xl border border-gray-200 bg-white shadow-lg relative flex items-center gap-2 px-3 py-3">
-			<button className="shrink-0 cursor-grab touch-none text-gray-400 hover:text-gray-600">
+		<div
+			style={overlayStyle}
+			className="rounded-xl border border-gray-200 bg-white relative flex items-center gap-2 px-3 py-3"
+		>
+			<button className="shrink-0 touch-none text-gray-400 hover:text-gray-600 cursor-grabbing">
 				<GripVertical size={18} />
 			</button>
 			<button className="flex min-w-0 flex-1 items-center justify-between">

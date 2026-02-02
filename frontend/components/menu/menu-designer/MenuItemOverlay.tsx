@@ -5,9 +5,19 @@ import { GripVertical } from "lucide-react";
 import { MenuItem } from "@/types";
 
 export const MenuItemOverlay = ({ item }: { item: MenuItem }) => {
+	const overlayStyle = {
+		transform: "translate3d(5px, 5px, 0) scale(1.025)",
+		boxShadow:
+			"0 0 0 1px rgba(63, 63, 68, 0.05), 0 1px 6px 0 rgba(34, 33, 81, 0.3)",
+		cursor: "grabbing",
+	};
+
 	return (
-		<div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2.5 shadow-lg">
-			<span className="shrink-0 text-gray-400">
+		<div
+			style={overlayStyle}
+			className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2.5"
+		>
+			<span className="shrink-0 text-gray-400 cursor-grabbing">
 				<GripVertical size={16} />
 			</span>
 			<div className="min-w-0 flex-1">
