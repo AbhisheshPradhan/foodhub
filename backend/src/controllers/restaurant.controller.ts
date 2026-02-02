@@ -296,14 +296,6 @@ export const getUserRestaurants = async (req: AuthRequest, res: Response) => {
 														allergen: true,
 													},
 												},
-												modifiers: {
-													where: {
-														isAvailable: true,
-													},
-													orderBy: {
-														displayOrder: "asc",
-													},
-												},
 											},
 										},
 									},
@@ -357,14 +349,7 @@ export const getUserRestaurants = async (req: AuthRequest, res: Response) => {
 						description: a.allergen.description,
 						icon: a.allergen.icon,
 					})),
-					modifiers: item.modifiers.map((m) => ({
-						id: m.id,
-						name: m.name,
-						description: m.description,
-						priceAdjustment: m.priceAdjustment,
-						modifierType: m.modifierType,
-						displayOrder: m.displayOrder,
-					})),
+					modifiers: item.modifiers ? item.modifiers : [],
 				})),
 			})),
 		}));

@@ -352,6 +352,7 @@ export function MenuDnD() {
 			</DndContext>
 
 			<AddCategoryModal
+				// category={null}
 				isOpen={isAddCategoryOpen}
 				onClose={() => setIsAddCategoryOpen(false)}
 				onSave={handleAddCategory}

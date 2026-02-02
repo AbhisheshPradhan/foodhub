@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DeleteIcon, Trash, Trash2, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import type { EditableMenuItem, MenuCategory } from "@/types";
 import { Button } from "@/components/ui/Button";

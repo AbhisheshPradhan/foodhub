@@ -52,17 +52,17 @@ export const MenuItemCard = ({
 							{item.calories} cal
 						</span>
 					</div>
-					{item.modifiers.length > 0 && (
+					{item?.modifiers?.length > 0 && (
 						<div className="mt-1.5 flex flex-wrap gap-1">
-							{item.modifiers.map((mod) => (
+							{item?.modifiers?.map((mod, index) => (
 								<span
-									key={mod.id}
+									key={"modifier-" + index}
 									className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[9px] text-gray-600"
 								>
-									{mod.name}
-									{parseFloat(mod.priceAdjustment) > 0 && (
+									{mod?.name}
+									{mod?.priceAdjustment > 0 && (
 										<span className="ml-0.5 text-gray-400">
-											+${mod.priceAdjustment}
+											+${mod?.priceAdjustment}
 										</span>
 									)}
 								</span>

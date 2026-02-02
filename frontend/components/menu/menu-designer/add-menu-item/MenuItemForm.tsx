@@ -57,12 +57,9 @@ export const MenuItemForm = ({
 
 	const addModifier = () => {
 		const newModifier: Modifier = {
-			id: Date.now(),
 			name: "",
-			description: "",
-			priceAdjustment: "0.00",
+			priceAdjustment: 0.0,
 			modifierType: "addon",
-			displayOrder: item.modifiers.length,
 		};
 		updateField("modifiers", [...item.modifiers, newModifier]);
 	};

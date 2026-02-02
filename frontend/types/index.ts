@@ -5,13 +5,12 @@ export interface Allergen {
 	icon: string;
 }
 
+export type ModifierType = "size" | "addon" | "substitution" | "preparation";
+
 export interface Modifier {
-	id: number;
 	name: string;
-	description: string;
-	priceAdjustment: string;
-	modifierType: string;
-	displayOrder: number;
+	priceAdjustment: number;
+	modifierType: ModifierType;
 }
 
 export interface MenuItem {

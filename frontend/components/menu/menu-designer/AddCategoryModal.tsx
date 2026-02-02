@@ -19,7 +19,7 @@ export const AddCategoryModal = ({
 	onClose,
 	onSave,
 }: {
-	category: EditableCategory;
+	category?: EditableCategory;
 	isOpen: boolean;
 	onClose: () => void;
 	onSave: (name: string, description: string) => void;

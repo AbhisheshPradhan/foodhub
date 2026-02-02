@@ -86,11 +86,11 @@ model MenuItem {
     preparationTime Int?               @map("preparation_time")
     servings        String?            @db.VarChar(50)
     displayOrder    Int                @default(0) @map("display_order")
+    modifiers       Json?
     createdAt       DateTime           @default(now()) @map("created_at")
     updatedAt       DateTime           @updatedAt @map("updated_at")
     allergens       MenuItemAllergen[]
     category        Category           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-    modifiers       Modifier[]
 
     @@index([categoryId, displayOrder], map: "idx_category_order")
     @@index([isAvailable], map: "idx_availability")
@@ -118,29 +118,4 @@ model MenuItemAllergen {
 
     @@id([itemId, allergenId])
     @@map("menu_item_allergens")
-}
-
-model Modifier {
-    id              Int          @id @default(autoincrement()) @map("modifier_id")
-    itemId          Int          @map("item_id")
-    name            String       @db.VarChar(100)
-    description     String?
-    priceAdjustment Decimal      @default(0.00) @map("price_adjustment") @db.Decimal(10, 2)
-    isAvailable     Boolean      @default(true) @map("is_available")
-    modifierType    ModifierType @default(addon) @map("modifier_type")
-    displayOrder    Int          @default(0) @map("display_order")
-    createdAt       DateTime     @default(now()) @map("created_at")
-    menuItem        MenuItem     @relation(fields: [itemId], references: [id], onDelete: Cascade)
-
-    @@index([itemId, displayOrder], map: "idx_item_modifier")
-    @@map("modifiers")
-}
-
-enum ModifierType {
-    size
-    addon
-    substitution
-    preparation
-
-    @@map("modifier_type")
 }
