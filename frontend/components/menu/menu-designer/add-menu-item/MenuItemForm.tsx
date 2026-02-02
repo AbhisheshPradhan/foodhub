@@ -202,7 +202,9 @@ export const MenuItemForm = ({
 		return (
 			<div className="flex flex-col">
 				<div className="flex items-center justify-between mb-3">
-					<label className="text-sm font-medium text-gray-700"></label>
+					<p className="text-xs text-gray-500">
+						Options for sizes, addons and preparation methods
+					</p>
 					<button
 						type="button"
 						onClick={addModifier}
@@ -212,11 +214,7 @@ export const MenuItemForm = ({
 						Add Modifier
 					</button>
 				</div>
-				{item.modifiers.length === 0 && (
-					<p className="text-xs text-gray-400">
-						No modifiers added yet
-					</p>
-				)}
+
 				<div className="flex flex-col gap-2">
 					{item.modifiers.map((modifier, index) => (
 						<div
@@ -233,7 +231,7 @@ export const MenuItemForm = ({
 										e.target.value,
 									)
 								}
-								placeholder="Name"
+								placeholder="e.g. Small / Fried / Extra Meat"
 								className="flex-1 rounded border border-gray-200 px-2 py-1 text-xs text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
 							/>
 							<div className="relative">

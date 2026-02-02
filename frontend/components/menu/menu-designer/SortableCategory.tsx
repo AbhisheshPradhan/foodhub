@@ -6,14 +6,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-	ChevronDown,
-	Copy,
-	GripVertical,
-	Pencil,
-	Plus,
-	Trash2,
-} from "lucide-react";
+import { ChevronDown, Copy, GripVertical, Pencil, Trash2 } from "lucide-react";
 
 import { MenuCategory } from "@/types";
 import { SortableMenuItem } from "./SortableMenuItem";

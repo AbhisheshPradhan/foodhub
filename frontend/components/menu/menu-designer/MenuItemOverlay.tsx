@@ -6,7 +6,7 @@ import { MenuItem } from "@/types";
 
 export const MenuItemOverlay = ({ item }: { item: MenuItem }) => {
 	return (
-		<div className="flex items-center gap-3 rounded-lg border border-brand-300 bg-white px-3 py-2.5 shadow-lg">
+		<div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2.5 shadow-lg">
 			<span className="shrink-0 text-gray-400">
 				<GripVertical size={16} />
 			</span>
@@ -19,6 +19,11 @@ export const MenuItemOverlay = ({ item }: { item: MenuItem }) => {
 						${item.price}
 					</span>
 				</div>
+				{item.description && (
+					<p className="mt-0.5 truncate text-xs text-gray-500">
+						{item.description}
+					</p>
+				)}
 			</div>
 		</div>
 	);

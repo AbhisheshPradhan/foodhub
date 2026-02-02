@@ -77,7 +77,8 @@ export const MenuItemFormModal = ({
 	if (!isOpen) return null;
 
 	const handleClose = () => {
-		setEditedItem(BLANK_ITEM);
+		setEditedItem({ ...BLANK_ITEM, allergens: [], modifiers: [] });
+		setActiveTab("general");
 		onClose();
 	};
 
@@ -110,7 +111,7 @@ export const MenuItemFormModal = ({
 								{editedItem.id ? "Edit" : "Add"} Item
 							</h2>
 							<button
-								onClick={onClose}
+								onClick={handleClose}
 								className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 -mr-2"
 							>
 								<X size={24} />
@@ -180,7 +181,7 @@ export const MenuItemFormModal = ({
 								<div className="flex items-center gap-4">
 									<Button
 										type="button"
-										onClick={onClose}
+										onClick={handleClose}
 										size="xs"
 										variant="outline"
 									>

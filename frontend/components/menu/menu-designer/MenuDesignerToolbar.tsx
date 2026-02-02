@@ -5,23 +5,23 @@ import { Save, ChevronsDownUp, ChevronsUpDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 interface MenuDesignerToolbarProps {
-	onSave: () => void;
+	onSaveOrder: () => void;
 	onAddCategory: () => void;
 	onAddMenuItem: () => void;
 	onToggleAll: () => void;
 	allCollapsed: boolean;
-	isSaving?: boolean;
-	hasChanges?: boolean;
+	isSaving: boolean;
+	hasOrderChanges: boolean;
 }
 
 export const MenuDesignerToolbar: React.FC<MenuDesignerToolbarProps> = ({
-	onSave,
+	onSaveOrder,
 	onAddCategory,
 	onAddMenuItem,
 	onToggleAll,
 	allCollapsed,
-	isSaving = false,
-	hasChanges = false,
+	isSaving,
+	hasOrderChanges,
 }) => {
 	return (
 		<div className="flex items-center gap-2">
@@ -43,15 +43,17 @@ export const MenuDesignerToolbar: React.FC<MenuDesignerToolbarProps> = ({
 				Add Item
 			</Button>
 
-			<Button
-				size="xs"
-				variant="primary"
-				startIcon={<Save size={16} />}
-				onClick={onSave}
-				disabled={isSaving || !hasChanges}
-			>
-				{isSaving ? "Saving..." : "Save Changes"}
-			</Button>
+			{(isSaving || hasOrderChanges) && (
+				<Button
+					size="xs"
+					variant="primary"
+					startIcon={<Save size={16} />}
+					onClick={onSaveOrder}
+					disabled={isSaving}
+				>
+					{isSaving ? "Saving..." : "Save Order"}
+				</Button>
+			)}
 
 			<button
 				type="button"

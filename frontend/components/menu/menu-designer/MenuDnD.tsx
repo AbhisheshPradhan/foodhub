@@ -47,7 +47,7 @@ export function MenuDnD() {
 
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
-	const [hasChanges, setHasChanges] = useState(false);
+	const [hasOrderChanges, setHasOrderChanges] = useState(false);
 	const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 	const [isAddMenuItemOpen, setIsAddMenuItemOpen] = useState(false);
 
@@ -56,6 +56,19 @@ export function MenuDnD() {
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
 		}),
+	);
+
+	const toggleCategory = useCallback(
+		(catId: number) => {
+			setDesignerActiveCategoryId(catId);
+			setOpenCategories((prev) => {
+				const next = new Set(prev);
+				if (next.has(catId)) next.delete(catId);
+				else next.add(catId);
+				return next;
+			});
+		},
+		[setDesignerActiveCategoryId],
 	);
 
 	const findCategoryByItemId = useCallback(
@@ -88,24 +101,19 @@ export function MenuDnD() {
 		[categories],
 	);
 
-	const toggleCategory = useCallback((catId: number) => {
-		setDesignerActiveCategoryId(catId);
-		setOpenCategories((prev) => {
-			const next = new Set(prev);
-			if (next.has(catId)) next.delete(catId);
-			else next.add(catId);
-			return next;
-		});
-	}, []);
-
-	const handleSave = useCallback(async () => {
+	const handleSaveOrder = useCallback(async () => {
 		setIsSaving(true);
+
 		try {
 			// TODO: call API to persist the new display order
 			console.log("Saving order…", categories);
-			setHasChanges(false);
-		} finally {
-			setIsSaving(false);
+
+			setTimeout(() => {
+				setHasOrderChanges(false);
+				setIsSaving(false);
+			}, 2000);
+		} catch (err) {
+			console.log(err);
 		}
 	}, [categories]);
 
@@ -130,7 +138,6 @@ export function MenuDnD() {
 				menuItems: [],
 			};
 			setCategories((prev) => [...prev, newCategory]);
-			setHasChanges(true);
 		},
 		[categories.length],
 	);
@@ -147,7 +154,6 @@ export function MenuDnD() {
 				};
 			}),
 		);
-		setHasChanges(true);
 	}, []);
 
 	const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -233,7 +239,7 @@ export function MenuDnD() {
 
 			if (!over || active.id === over.id) return;
 
-			setHasChanges(true);
+			setHasOrderChanges(true);
 			const activeIdStr = String(active.id);
 			const overIdStr = String(over.id);
 
@@ -318,12 +324,13 @@ export function MenuDnD() {
 	return (
 		<div className="flex flex-col gap-4">
 			<MenuDesignerToolbar
-				onSave={handleSave}
+				onSaveOrder={handleSaveOrder}
 				onAddCategory={() => setIsAddCategoryOpen(true)}
 				onAddMenuItem={() => setIsAddMenuItemOpen(true)}
 				onToggleAll={handleToggleAll}
 				allCollapsed={allCollapsed}
-				isSaving={isSaving || hasChanges}
+				isSaving={isSaving}
+				hasOrderChanges={hasOrderChanges}
 			/>
 			<DndContext
 				sensors={sensors}
