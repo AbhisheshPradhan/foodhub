@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 
 import type { EditableMenuItem, MenuCategory } from "@/types";
@@ -53,6 +53,26 @@ export const MenuItemFormModal = ({
 	);
 	const [showDeleteAlert, setShowDeleteAlert] = useState<boolean>(false);
 	const [isDeleting, setIsDeleting] = useState<boolean>(false);
+	const tabsRef = useRef<HTMLDivElement>(null);
+	const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+	const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+
+	const updateIndicator = useCallback(() => {
+		const container = tabsRef.current;
+		const activeEl = tabRefs.current.get(activeTab);
+		if (container && activeEl) {
+			const containerRect = container.getBoundingClientRect();
+			const tabRect = activeEl.getBoundingClientRect();
+			setIndicator({
+				left: tabRect.left - containerRect.left,
+				width: tabRect.width,
+			});
+		}
+	}, [activeTab]);
+
+	useEffect(() => {
+		updateIndicator();
+	}, [updateIndicator]);
 
 	if (!isOpen) return null;
 
@@ -82,36 +102,58 @@ export const MenuItemFormModal = ({
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-			<div className="flex w-150 max-w-3xl flex-col rounded-xl bg-white shadow-xl  h-[50vh]">
+			<div className="flex w-120 max-w-3xl flex-col rounded-xl bg-white shadow-xl  h-[50vh]">
 				<div className="flex-1 overflow-hidden flex flex-col h-full">
 					<div className="flex flex-col h-full">
-						<div className="flex items-center gap-3 px-6 pt-6 pb-3">
+						<div className="flex items-center gap-3 px-5 pt-3 pb-3">
 							<h2 className="flex-1 text-lg font-semibold text-gray-900">
 								{editedItem.id ? "Edit" : "Add"} Item
 							</h2>
 							<button
 								onClick={onClose}
-								className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+								className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 -mr-2"
 							>
-								<X size={18} />
+								<X size={24} />
 							</button>
 						</div>
 
-						<div className="flex gap-2 px-6 pb-3">
-							{TABS.map((tab) => (
-								<Button
-									key={tab.key}
-									type="button"
-									onClick={() => setActiveTab(tab.key)}
-									variant={`${activeTab === tab.key ? "primary" : "outline"}`}
-									size="xs"
-								>
-									{tab.label}
-								</Button>
-							))}
+						<div
+							ref={tabsRef}
+							className="relative flex border-b border-gray-200 mx-5"
+						>
+							{TABS.map((tab) => {
+								return (
+									<button
+										key={tab.key}
+										ref={(el) => {
+											if (el)
+												tabRefs.current.set(
+													tab.key,
+													el,
+												);
+										}}
+										type="button"
+										onClick={() => setActiveTab(tab.key)}
+										className={`pb-2 text-sm font-medium mx-3 first:ml-0 last:mr-0 transition-colors ${
+											activeTab === tab.key
+												? "text-black"
+												: "text-gray-500 hover:text-gray-700"
+										}`}
+									>
+										{tab.label}
+									</button>
+								);
+							})}
+							<span
+								className="absolute bottom-0 h-0.5 bg-black transition-all duration-200 ease-in-out"
+								style={{
+									left: indicator.left,
+									width: indicator.width,
+								}}
+							/>
 						</div>
 
-						<div className="flex-1 overflow-y-auto px-6">
+						<div className="flex-1 overflow-y-auto px-5 py-4">
 							<MenuItemForm
 								item={editedItem}
 								onChange={(updated) =>
@@ -122,7 +164,7 @@ export const MenuItemFormModal = ({
 							/>
 						</div>
 
-						<div className="shrink-0 border-t border-gray-100 px-6 py-4">
+						<div className="shrink-0 border-t border-gray-100 px-5 py-4">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
 									{editedItem.id && (

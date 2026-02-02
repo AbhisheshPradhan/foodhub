@@ -202,13 +202,11 @@ export const MenuItemForm = ({
 		return (
 			<div className="flex flex-col">
 				<div className="flex items-center justify-between mb-3">
-					<label className="text-sm font-medium text-gray-700">
-						Modifiers
-					</label>
+					<label className="text-sm font-medium text-gray-700"></label>
 					<button
 						type="button"
 						onClick={addModifier}
-						className="flex items-center gap-1 text-xs font-medium text-brand-500 hover:text-brand-600"
+						className="flex items-center gap-1 text-xs font-medium text-brand-500 hover:text-brand-600 hover:bg-brand-100 p-2 rounded-lg"
 					>
 						<Plus size={14} />
 						Add Modifier
@@ -289,9 +287,7 @@ export const MenuItemForm = ({
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
-				<label className="mb-2 block text-sm font-medium text-gray-700">
-					Dietary Information
-				</label>
+				<label className="mb-2 block text-sm font-medium text-gray-700"></label>
 				<div className="flex flex-wrap gap-x-6 gap-y-2">
 					<Checkbox
 						label="Vegetarian"
@@ -344,71 +340,7 @@ export const MenuItemForm = ({
 				)}
 			</div>
 
-			<div className="border-t border-gray-100 pt-4">
-				<label className="mb-2 block text-sm font-medium text-gray-700">
-					Details
-				</label>
-				<div className="grid grid-cols-3 gap-3">
-					<div>
-						<label className="mb-1 block text-xs text-gray-500">
-							Calories
-						</label>
-						<input
-							type="number"
-							value={item.calories || ""}
-							onChange={(e) =>
-								updateField(
-									"calories",
-									Number(e.target.value) || 0,
-								)
-							}
-							placeholder="0"
-							min="0"
-							className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-						/>
-					</div>
-					<div>
-						<label className="mb-1 block text-xs text-gray-500">
-							Prep Time (min)
-						</label>
-						<input
-							type="number"
-							value={item.preparationTime || ""}
-							onChange={(e) =>
-								updateField(
-									"preparationTime",
-									Number(e.target.value) || 0,
-								)
-							}
-							placeholder="0"
-							min="0"
-							className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-						/>
-					</div>
-					<div>
-						<label className="mb-1 block text-xs text-gray-500">
-							Servings
-						</label>
-						<input
-							type="number"
-							value={item.servings ?? ""}
-							onChange={(e) =>
-								updateField(
-									"servings",
-									e.target.value
-										? Number(e.target.value)
-										: null,
-								)
-							}
-							placeholder="—"
-							min="1"
-							className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-						/>
-					</div>
-				</div>
-			</div>
-
-			<div className="border-t border-gray-100 pt-4">
+			<div className="pt-4">
 				<label className="mb-2 block text-sm font-medium text-gray-700">
 					Allergens
 				</label>
@@ -432,6 +364,66 @@ export const MenuItemForm = ({
 							</button>
 						);
 					})}
+				</div>
+			</div>
+
+			<div className="pt-4">
+				<label className="mb-2 block text-sm font-medium text-gray-700">
+					Details
+				</label>
+				<div className="grid grid-cols-3 gap-3">
+					<div>
+						<label className="mb-1 block text-xs ">Calories</label>
+						<input
+							type="number"
+							value={item.calories || ""}
+							onChange={(e) =>
+								updateField(
+									"calories",
+									Number(e.target.value) || 0,
+								)
+							}
+							placeholder="0"
+							min="0"
+							className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+						/>
+					</div>
+					<div>
+						<label className="mb-1 block text-xs">
+							Prep Time (min)
+						</label>
+						<input
+							type="number"
+							value={item.preparationTime || ""}
+							onChange={(e) =>
+								updateField(
+									"preparationTime",
+									Number(e.target.value) || 0,
+								)
+							}
+							placeholder="0"
+							min="0"
+							className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+						/>
+					</div>
+					<div>
+						<label className="mb-1 block text-xs">Servings</label>
+						<input
+							type="number"
+							value={item.servings ?? ""}
+							onChange={(e) =>
+								updateField(
+									"servings",
+									e.target.value
+										? Number(e.target.value)
+										: null,
+								)
+							}
+							placeholder="—"
+							min="1"
+							className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+						/>
+					</div>
 				</div>
 			</div>
 		</div>

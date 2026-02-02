@@ -63,7 +63,7 @@ export const AddCategoryModal = ({
 				if (e.target === backdropRef.current) handleClose();
 			}}
 		>
-			<div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+			<div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
 				<div className="flex items-center justify-between mb-4">
 					<h2 className="text-lg font-semibold text-gray-900">
 						{category.id ? "Edit" : "Add"} Category
