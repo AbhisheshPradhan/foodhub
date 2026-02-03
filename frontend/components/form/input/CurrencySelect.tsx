@@ -1,14 +1,14 @@
-type CurrencyCode = "AUD" | "NPR";
+export type CurrencyCode = "AUD" | "NPR";
 
 interface Currency {
 	code: CurrencyCode;
-	name: string;
+	label: string;
 	symbol: string;
 }
 
 const currencyOptions: Currency[] = [
-	{ code: "AUD", name: "Australian Dollar ($)", symbol: "$" },
-	{ code: "NPR", name: "Nepalese Rupee (Rs.)", symbol: "Rs." },
+	{ code: "AUD", label: "Australian Dollar ($)", symbol: "$" },
+	{ code: "NPR", label: "Nepalese Rupee (Rs.)", symbol: "Rs." },
 	// { code: "USD", name: "US Dollar", symbol: "$" },
 	// { code: "EUR", name: "Euro", symbol: "€" },
 	// { code: "GBP", name: "British Pound Sterling", symbol: "£" },
@@ -36,7 +36,7 @@ export const CurrencySelect: React.FC<CurrencySelectProps> = ({
 				id={id}
 				value={selectedCurrency}
 				onChange={onChange}
-				className="border rounded-lg border-gray-200 bg-transparent py-3 pl-3.5 pr-8 leading-tight text-gray-700 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 "
+				className="border rounded-lg border-gray-200 bg-transparent py-3 pl-3.5 pr-8 leading-tight text-gray-700 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 cursor-pointer"
 			>
 				{currencyOptions.map((currencyOption) => (
 					<option
@@ -44,7 +44,7 @@ export const CurrencySelect: React.FC<CurrencySelectProps> = ({
 						value={currencyOption.code}
 						className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
 					>
-						{currencyOption.name}
+						{currencyOption.label}
 					</option>
 				))}
 			</select>

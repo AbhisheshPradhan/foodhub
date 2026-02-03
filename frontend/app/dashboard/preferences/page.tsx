@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/layouts/AppHeader";
+import { PreferencesForm } from "@/components/menu/preferences-form/PreferencesForm";
 
 export default function PreferencesPage() {
 	return (
@@ -7,10 +8,8 @@ export default function PreferencesPage() {
 				heading="Preferences"
 				description=""
 			/>
-			<p className="text-sm text-gray-500">
-				Preferences — currency, wifi, welcome message, additional
-				information, menu languages,
-			</p>
+
+			<PreferencesForm />
 		</>
 	);
 }

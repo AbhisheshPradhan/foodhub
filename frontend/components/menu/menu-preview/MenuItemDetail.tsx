@@ -79,7 +79,7 @@ export const MenuItemDetail = ({
 					{item?.modifiers.length > 0 && (
 						<div className="mt-4">
 							<h4 className="text-[12px] font-semibold text-gray-900">
-								Customizations
+								Options
 							</h4>
 							<div className="mt-1.5 flex flex-col gap-2">
 								{item?.modifiers.map((mod) => (

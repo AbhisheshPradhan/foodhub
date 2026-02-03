@@ -1,3 +1,5 @@
+import type { CurrencyCode } from "@/components/form/input/CurrencySelect";
+
 export interface Allergen {
 	id: number;
 	name: string;
@@ -61,5 +63,14 @@ export interface Restaurant {
 	facebook?: string;
 	instagram?: string;
 	tiktok?: string;
+	currency?: CurrencyCode;
+	wifiName?: string;
+	wifiPassword?: string;
+	tagline?: string;
+	announcement?: string;
+	bannerMessage?: string;
+	logoUrl?: string;
+	coverPhotoUrl?: string;
+	brandColor?: string;
 	categories?: MenuCategory[];
 }

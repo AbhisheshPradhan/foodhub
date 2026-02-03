@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Save } from "lucide-react";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
@@ -18,16 +18,10 @@ export const RestaurantDetailsForm = () => {
 	const [isSaving, setIsSaving] = useState<boolean>(false);
 
 	const [restaurantDetails, setRestaurantDetails] =
-		useState<Restaurant | null>(null);
+		useState<Restaurant | null>(() => selectedRestaurant);
 
 	const [nameError, setNameError] = useState(false);
 	const [nameHint, setNameHint] = useState("");
-
-	useEffect(() => {
-		if (!isLoading && selectedRestaurant) {
-			setRestaurantDetails(selectedRestaurant);
-		}
-	}, [isLoading, selectedRestaurant]);
 
 	const handleRestaurantDetailChange = (attr: string, value: string) => {
 		setRestaurantDetails((prev) => {
@@ -149,24 +143,6 @@ export const RestaurantDetailsForm = () => {
 								/>
 							</div>
 						</div>
-						{/* <div className="flex justify-between items-center">
-							<Label htmlFor="currency">Currency</Label>
-							<div className="flex-1 max-w-2/3">
-								<CurrencySelect
-									id={"currency"}
-									selectedCurrency={
-										restaurantDetails?.currency
-									}
-									onChange={(e) =>
-										handleRestaurantDetailChange(
-											"currency",
-											e.target.value,
-										)
-									}
-								/>
-							</div>
-						</div> */}
-						<div className="flex justify-between items-center"></div>
 						<div className="w-full">
 							<h4 className="border-t border-gray-200 pt-4 text-base font-medium text-gray-800 dark:border-gray-800 dark:text-white/90">
 								Socials

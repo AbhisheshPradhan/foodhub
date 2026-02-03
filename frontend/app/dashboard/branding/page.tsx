@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/layouts/AppHeader";
+import { BrandingForm } from "@/components/menu/branding-form/BrandingForm";
 
 export default function BrandingPage() {
 	return (
@@ -7,10 +8,8 @@ export default function BrandingPage() {
 				heading="Branding"
 				description=""
 			/>
-			<p className="text-sm text-gray-500">
-				Branding — logo, cover photo, show/hide restaurant name, theme
-				colour,
-			</p>
+
+			<BrandingForm />
 		</>
 	);
 }
