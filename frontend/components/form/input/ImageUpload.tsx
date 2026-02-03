@@ -5,6 +5,8 @@ import { Crop, ImagePlus, Trash2 } from "lucide-react";
 
 import { ImageCropModal } from "./ImageCropModal";
 
+const DEFAULT_MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+
 interface ImageUploadProps {
 	id: string;
 	label?: string;
@@ -12,6 +14,8 @@ interface ImageUploadProps {
 	onFileSelect: (file: File) => void;
 	onRemove: () => void;
 	type?: "logo" | "cover";
+	maxSizeBytes?: number;
+	onError?: (message: string) => void;
 }
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -20,13 +24,28 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 	onFileSelect,
 	onRemove,
 	type,
+	maxSizeBytes,
+	onError,
 }) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [showCropModal, setShowCropModal] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	const maxSize = maxSizeBytes ?? DEFAULT_MAX_SIZE_BYTES;
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (file) {
+			if (file.size > maxSize) {
+				const limitMb = Math.round(maxSize / (1024 * 1024));
+				const msg = `File size must be under ${limitMb}MB`;
+				setError(msg);
+				onError?.(msg);
+				setTimeout(() => setError(null), 4000);
+				e.target.value = "";
+				return;
+			}
+			setError(null);
 			onFileSelect(file);
 		}
 		e.target.value = "";
@@ -46,6 +65,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 				onChange={handleChange}
 				className="hidden"
 			/>
+
+			{error && (
+				<p className="mb-1.5 text-xs text-error-500">{error}</p>
+			)}
 
 			{previewUrl ? (
 				<div className="relative inline-block">

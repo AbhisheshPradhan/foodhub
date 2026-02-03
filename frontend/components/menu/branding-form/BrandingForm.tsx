@@ -1,30 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
-import { Restaurant } from "@/types";
 import { Label } from "@/components/form/Label";
 import { ImageUpload } from "@/components/form/input/ImageUpload";
 import { ColorPicker } from "@/components/form/input/ColorPicker";
 import { Button } from "@/components/ui/Button";
 
 export const BrandingForm = () => {
-	const { isLoading, selectedRestaurant } = useRestaurants();
+	console.log("BrandingForm");
+	const {
+		isLoading,
+		draftRestaurant,
+		updateDraftRestaurantDetails,
+		updateSelectedRestaurantDetails,
+		resetDraftRestaurantState,
+	} = useRestaurants();
 	const [isSaving, setIsSaving] = useState(false);
-	const [restaurantDetails, setRestaurantDetails] =
-		useState<Restaurant | null>(() => selectedRestaurant);
 
 	const [logoFile, setLogoFile] = useState<File | null>(null);
 	const [logoPreview, setLogoPreview] = useState<string | null>(
-		() => selectedRestaurant?.logoUrl || null,
+		() => draftRestaurant?.logoUrl || null,
 	);
 
 	const [coverFile, setCoverFile] = useState<File | null>(null);
 	const [coverPreview, setCoverPreview] = useState<string | null>(
-		() => selectedRestaurant?.coverPhotoUrl || null,
+		() => draftRestaurant?.coverPhotoUrl || null,
 	);
+
+	useEffect(() => {
+		return () => resetDraftRestaurantState();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const handleLogoSelect = (file: File) => {
 		setLogoFile(file);
@@ -36,10 +45,7 @@ export const BrandingForm = () => {
 	const handleLogoRemove = () => {
 		setLogoFile(null);
 		setLogoPreview(null);
-		setRestaurantDetails((prev) => {
-			if (!prev) return prev;
-			return { ...prev, logoUrl: "" };
-		});
+		updateDraftRestaurantDetails("logoUrl", "");
 	};
 
 	const handleCoverSelect = (file: File) => {
@@ -50,28 +56,20 @@ export const BrandingForm = () => {
 	const handleCoverRemove = () => {
 		setCoverFile(null);
 		setCoverPreview(null);
-		setRestaurantDetails((prev) => {
-			if (!prev) return prev;
-			return { ...prev, coverPhotoUrl: "" };
-		});
+		updateDraftRestaurantDetails("coverPhotoUrl", "");
 	};
 
 	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setIsSaving(true);
 		setTimeout(() => {
-			console.log("handleSave branding", {
-				restaurantDetails,
-				logoFile,
-				coverFile,
-			});
+			console.log("logoFile", logoFile);
+			console.log("coverFile", coverFile);
+
+			updateSelectedRestaurantDetails(draftRestaurant!);
 			setIsSaving(false);
 		}, 2000);
 	};
-
-	if (isLoading || !selectedRestaurant) {
-		return null;
-	}
 
 	return (
 		<form onSubmit={handleSave}>
@@ -102,16 +100,12 @@ export const BrandingForm = () => {
 						<Label htmlFor="brandColor">Brand Colour</Label>
 						<ColorPicker
 							id="brandColor"
-							value={restaurantDetails?.brandColor || "#1f1f1f"}
+							value={draftRestaurant?.brandColor || "#1f1f1f"}
 							onChange={(color) =>
-								setRestaurantDetails((prev) => {
-									console.log(
-										"setRestaurantDetails color",
-										color,
-									);
-									if (!prev) return prev;
-									return { ...prev, brandColor: color };
-								})
+								updateDraftRestaurantDetails(
+									"brandColor",
+									color,
+								)
 							}
 						/>
 					</div>

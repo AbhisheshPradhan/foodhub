@@ -10,7 +10,7 @@ import { MenuItemDetail } from "./MenuItemDetail";
 import { MenuCategory, MenuItem } from "@/types";
 
 export const MenuPreview: React.FC = () => {
-	const { selectedRestaurant, designerActiveCategoryId } = useRestaurants();
+	const { draftRestaurant, designerActiveCategoryId } = useRestaurants();
 
 	const catNavRef = useRef<HTMLDivElement>(null);
 	const menuScrollRef = useRef<HTMLDivElement>(null);
@@ -145,10 +145,10 @@ export const MenuPreview: React.FC = () => {
 	}, []);
 
 	const filteredCategories: MenuCategory[] = useMemo(() => {
-		if (!selectedRestaurant) return [];
+		if (!draftRestaurant) return [];
 		const query = searchQuery.trim().toLowerCase();
-		if (!query) return selectedRestaurant.categories;
-		return selectedRestaurant.categories
+		if (!query) return draftRestaurant.categories;
+		return draftRestaurant.categories
 			.map((cat) => ({
 				...cat,
 				menuItems: (cat.menuItems as MenuItem[]).filter((item) =>
@@ -156,9 +156,10 @@ export const MenuPreview: React.FC = () => {
 				),
 			}))
 			.filter((cat) => cat.menuItems.length > 0);
-	}, [searchQuery, selectedRestaurant]);
+	}, [searchQuery, draftRestaurant]);
 
-	if (!selectedRestaurant) {
+	// console.log("MenuPreview draftRestaurant", draftRestaurant);
+	if (!draftRestaurant) {
 		return null;
 	}
 
@@ -302,7 +303,7 @@ export const MenuPreview: React.FC = () => {
 						) : (
 							<div className="flex items-center justify-between">
 								<h1 className="text-[18px] font-bold leading-tight text-gray-900">
-									{selectedRestaurant.name}
+									{draftRestaurant.name}
 								</h1>
 								<button
 									onClick={() => {
@@ -377,51 +378,51 @@ export const MenuPreview: React.FC = () => {
 
 						<div className="border-t border-gray-200 px-4 py-4">
 							<p className="text-[12px] font-semibold text-gray-900">
-								{selectedRestaurant.name}
+								{draftRestaurant.name}
 							</p>
-							{selectedRestaurant.address && (
+							{draftRestaurant.address && (
 								<p className="mt-1 text-[11px] leading-tight text-gray-500">
-									{selectedRestaurant.address}
+									{draftRestaurant.address}
 								</p>
 							)}
 							<div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
-								{selectedRestaurant.phone && (
+								{draftRestaurant.phone && (
 									<div className="text-[10px] text-gray-400">
-										{selectedRestaurant.phone}
+										{draftRestaurant.phone}
 									</div>
 								)}
-								{selectedRestaurant.email && (
+								{draftRestaurant.email && (
 									<div className="text-[10px] text-gray-400">
 										<Link
-											href={`mailto:${selectedRestaurant.email}`}
+											href={`mailto:${draftRestaurant.email}`}
 										>
-											{selectedRestaurant.email}
+											{draftRestaurant.email}
 										</Link>
 									</div>
 								)}
-								{selectedRestaurant.website && (
+								{draftRestaurant.website && (
 									<div className="text-[10px] text-gray-400">
-										{selectedRestaurant.website}
+										{draftRestaurant.website}
 									</div>
 								)}
 							</div>
-							{(selectedRestaurant.instagram ||
-								selectedRestaurant.facebook ||
-								selectedRestaurant.tiktok) && (
+							{(draftRestaurant.instagram ||
+								draftRestaurant.facebook ||
+								draftRestaurant.tiktok) && (
 								<div className="mt-2 flex flex-wrap gap-3">
-									{selectedRestaurant.instagram && (
+									{draftRestaurant.instagram && (
 										<span className="text-[10px] text-gray-400">
-											@{selectedRestaurant.instagram}
+											@{draftRestaurant.instagram}
 										</span>
 									)}
-									{selectedRestaurant.facebook && (
+									{draftRestaurant.facebook && (
 										<span className="text-[10px] text-gray-400">
-											@{selectedRestaurant.facebook}
+											@{draftRestaurant.facebook}
 										</span>
 									)}
-									{selectedRestaurant.tiktok && (
+									{draftRestaurant.tiktok && (
 										<span className="text-[10px] text-gray-400">
-											@{selectedRestaurant.tiktok}
+											@{draftRestaurant.tiktok}
 										</span>
 									)}
 								</div>

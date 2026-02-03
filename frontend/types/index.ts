@@ -53,6 +53,53 @@ export type EditableCategory = {
 	description: string;
 };
 
+export type QrFrameType =
+	| "bottom-text"
+	| "bottom-banner"
+	| "rounded"
+	| "square"
+	| "full-border"
+	| "top-header"
+	| "ticket"
+	| "tilted"
+	| "balloon"
+	| "clipboard"
+	| "shopping-bag"
+	| "gift"
+	| "star"
+	| "envelope"
+	| "coffee-cup"
+	| "none";
+
+export type QrPatternStyle =
+	| "square"
+	| "dots"
+	| "rounded"
+	| "classy"
+	| "classy-rounded"
+	| "extra-rounded";
+
+export type QrCornerFrameStyle = "square" | "dot" | "extra-rounded";
+
+export type QrCornerDotType = "square" | "dot" | "none";
+
+export interface QrCodeConfig {
+	frameType: QrFrameType;
+	frameText: string;
+	frameColor: string;
+	frameBackgroundColor: string;
+	frameTextColor: string;
+	patternStyle: QrPatternStyle;
+	dotColor: string;
+	patternBackgroundColor: string;
+	cornerFrameStyle: QrCornerFrameStyle;
+	cornerDotType: QrCornerDotType;
+	cornerFrameColor: string;
+	cornerDotColor: string;
+	useRestaurantLogo: boolean;
+	logoUrl: string | null;
+}
+
 export interface Restaurant {
 	id: number;
 	name: string;
@@ -73,4 +120,5 @@ export interface Restaurant {
 	coverPhotoUrl?: string;
 	brandColor?: string;
 	categories?: MenuCategory[];
+	qrCodeConfig?: QrCodeConfig;
 }

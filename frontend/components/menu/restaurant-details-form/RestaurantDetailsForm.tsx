@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
@@ -13,29 +13,28 @@ import { SocialsInput } from "@/components/form/input/SocialsInput";
 import { PlaceAutocomplete } from "@/components/form/input/PlaceAutocomplete";
 
 export const RestaurantDetailsForm = () => {
-	const { isLoading, selectedRestaurant } = useRestaurants();
+	const {
+		isLoading,
+		draftRestaurant,
+		updateDraftRestaurantDetails,
+		updateSelectedRestaurantDetails,
+		resetDraftRestaurantState,
+	} = useRestaurants();
 
 	const [isSaving, setIsSaving] = useState<boolean>(false);
-
-	const [restaurantDetails, setRestaurantDetails] =
-		useState<Restaurant | null>(() => selectedRestaurant);
 
 	const [nameError, setNameError] = useState(false);
 	const [nameHint, setNameHint] = useState("");
 
-	const handleRestaurantDetailChange = (attr: string, value: string) => {
-		setRestaurantDetails((prev) => {
-			return {
-				...prev,
-				[attr]: value,
-			};
-		});
-	};
+	useEffect(() => {
+		return () => resetDraftRestaurantState();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
-		if (!restaurantDetails.name) {
+		if (!draftRestaurant?.name) {
 			setNameError(true);
 			setNameHint("Restaurant name is required.");
 			return;
@@ -46,10 +45,19 @@ export const RestaurantDetailsForm = () => {
 
 		setIsSaving(true);
 
-		console.log("handleSave restaurantDetails", restaurantDetails);
+		try {
+			setTimeout(() => {
+				updateSelectedRestaurantDetails(draftRestaurant);
+				setIsSaving(false);
+			}, 2000);
+		} catch (err) {
+			console.error("error saving restaurant details", err);
+		}
+
+		console.log("handleSave restaurantDetails", draftRestaurant);
 	};
 
-	if (isLoading || !selectedRestaurant) {
+	if (isLoading || !draftRestaurant) {
 		return null;
 	}
 
@@ -59,7 +67,7 @@ export const RestaurantDetailsForm = () => {
 				<div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
 					<div className="space-y-6 border-t border-gray-100 p-5 sm:p-5 dark:border-gray-800">
 						<div className="w-full">
-							<h4 className="border-b border-gray-200 pb-4 text-base font-medium text-gray-800 dark:border-gray-800 dark:text-white/90">
+							<h4 className="text-base font-medium text-gray-800 dark:border-gray-800 dark:text-white/90">
 								General Info
 							</h4>
 						</div>
@@ -71,9 +79,9 @@ export const RestaurantDetailsForm = () => {
 							<TextInput
 								id="name"
 								placeholder="Enter your Restaurant's name"
-								value={restaurantDetails?.name}
+								value={draftRestaurant?.name}
 								onChange={(e) =>
-									handleRestaurantDetailChange(
+									updateDraftRestaurantDetails(
 										"name",
 										e.target.value,
 									)
@@ -102,9 +110,9 @@ export const RestaurantDetailsForm = () => {
 							</Label>
 							<PlaceAutocomplete
 								placeholder="Search restaurant location"
-								defaultValue={restaurantDetails?.address}
+								defaultValue={draftRestaurant?.address}
 								onChange={(address) =>
-									handleRestaurantDetailChange(
+									updateDraftRestaurantDetails(
 										"address",
 										address,
 									)
@@ -117,9 +125,9 @@ export const RestaurantDetailsForm = () => {
 								<Label htmlFor="phone">Phone</Label>
 								<PhoneInput
 									id="phone"
-									value={restaurantDetails?.phone || ""}
+									value={draftRestaurant?.phone || ""}
 									onChange={(phoneNumber) =>
-										handleRestaurantDetailChange(
+										updateDraftRestaurantDetails(
 											"phone",
 											phoneNumber,
 										)
@@ -133,9 +141,9 @@ export const RestaurantDetailsForm = () => {
 								<TextInput
 									id="website"
 									placeholder="www.example.com"
-									value={restaurantDetails?.website}
+									value={draftRestaurant?.website}
 									onChange={(e) =>
-										handleRestaurantDetailChange(
+										updateDraftRestaurantDetails(
 											"website",
 											e.target.value,
 										)
@@ -153,9 +161,9 @@ export const RestaurantDetailsForm = () => {
 								<Label htmlFor="facebook">Facebook</Label>
 								<SocialsInput
 									id="facebook"
-									value={restaurantDetails?.facebook || ""}
+									value={draftRestaurant?.facebook || ""}
 									onChange={(e) =>
-										handleRestaurantDetailChange(
+										updateDraftRestaurantDetails(
 											"facebook",
 											e.target.value,
 										)
@@ -167,9 +175,9 @@ export const RestaurantDetailsForm = () => {
 								<Label htmlFor="instagram">Instagram</Label>
 								<SocialsInput
 									id="instagram"
-									value={restaurantDetails?.instagram || ""}
+									value={draftRestaurant?.instagram || ""}
 									onChange={(e) =>
-										handleRestaurantDetailChange(
+										updateDraftRestaurantDetails(
 											"instagram",
 											e.target.value,
 										)
@@ -182,9 +190,9 @@ export const RestaurantDetailsForm = () => {
 								<Label htmlFor="tiktok">TikTok</Label>
 								<SocialsInput
 									id="tiktok"
-									value={restaurantDetails?.facebook || ""}
+									value={draftRestaurant?.facebook || ""}
 									onChange={(e) =>
-										handleRestaurantDetailChange(
+										updateDraftRestaurantDetails(
 											"tiktok",
 											e.target.value,
 										)

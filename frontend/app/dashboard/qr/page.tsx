@@ -1,15 +1,14 @@
 import { AppHeader } from "@/components/layouts/AppHeader";
+import { QrCodeEditor } from "@/components/menu/qr-code-designer/QrCodeDesigner";
 
 export default function QrCodeEditorPage() {
 	return (
 		<>
 			<AppHeader
-				heading="QR Code Editor"
+				heading="QR Code Designer"
 				description=""
 			/>
-			<p className="text-sm text-gray-500">
-				QR Code Editor — coming soon
-			</p>
+			<QrCodeEditor />
 		</>
 	);
 }

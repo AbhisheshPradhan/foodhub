@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
-import { Restaurant } from "@/types";
 import { Label } from "@/components/form/Label";
 import { TextInput } from "@/components/form/input/TextInput";
 import { TextArea } from "@/components/form/input/TextArea";
@@ -12,28 +11,26 @@ import { CurrencySelect } from "@/components/form/input/CurrencySelect";
 import { Button } from "@/components/ui/Button";
 
 export const PreferencesForm = () => {
-	const { isLoading, selectedRestaurant } = useRestaurants();
+	const {
+		isLoading,
+		draftRestaurant,
+		updateDraftRestaurantDetails,
+		resetDraftRestaurantState,
+	} = useRestaurants();
 	const [isSaving, setIsSaving] = useState<boolean>(false);
-	const [restaurantDetails, setRestaurantDetails] =
-		useState<Restaurant | null>(() => selectedRestaurant);
-
-	const handleRestaurantDetailChange = (attr: string, value: string) => {
-		setRestaurantDetails((prev) => {
-			if (!prev) return prev;
-			return {
-				...prev,
-				[attr]: value,
-			};
-		});
-	};
 
 	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setIsSaving(true);
-		console.log("handleSave restaurantDetails", restaurantDetails);
+		console.log("handleSave draftRestaurant", draftRestaurant);
 	};
 
-	if (isLoading || !selectedRestaurant) {
+	useEffect(() => {
+		return () => resetDraftRestaurantState();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	if (isLoading || !draftRestaurant) {
 		return null;
 	}
 
@@ -47,10 +44,10 @@ export const PreferencesForm = () => {
 							<CurrencySelect
 								id="currency"
 								selectedCurrency={
-									restaurantDetails?.currency || "AUD"
+									draftRestaurant?.currency || "AUD"
 								}
 								onChange={(e) =>
-									handleRestaurantDetailChange(
+									updateDraftRestaurantDetails(
 										"currency",
 										e.target.value,
 									)
@@ -66,9 +63,9 @@ export const PreferencesForm = () => {
 								<TextInput
 									id="wifiName"
 									placeholder="Network name"
-									value={restaurantDetails?.wifiName || ""}
+									value={draftRestaurant?.wifiName || ""}
 									onChange={(e) =>
-										handleRestaurantDetailChange(
+										updateDraftRestaurantDetails(
 											"wifiName",
 											e.target.value,
 										)
@@ -79,11 +76,9 @@ export const PreferencesForm = () => {
 								<TextInput
 									id="wifiPassword"
 									placeholder="Password"
-									value={
-										restaurantDetails?.wifiPassword || ""
-									}
+									value={draftRestaurant?.wifiPassword || ""}
 									onChange={(e) =>
-										handleRestaurantDetailChange(
+										updateDraftRestaurantDetails(
 											"wifiPassword",
 											e.target.value,
 										)
@@ -110,9 +105,9 @@ export const PreferencesForm = () => {
 						<TextArea
 							id="tagline"
 							placeholder="e.g. Authentic Nepali Cuisine • Open till 10pm"
-							value={restaurantDetails?.tagline || ""}
+							value={draftRestaurant?.tagline || ""}
 							onChange={(e) =>
-								handleRestaurantDetailChange(
+								updateDraftRestaurantDetails(
 									"tagline",
 									e.target.value,
 								)
@@ -131,9 +126,9 @@ export const PreferencesForm = () => {
 						<TextArea
 							id="announcement"
 							placeholder="e.g. Welcome! Please order at the counter."
-							value={restaurantDetails?.announcement || ""}
+							value={draftRestaurant?.announcement || ""}
 							onChange={(e) =>
-								handleRestaurantDetailChange(
+								updateDraftRestaurantDetails(
 									"announcement",
 									e.target.value,
 								)
@@ -153,9 +148,9 @@ export const PreferencesForm = () => {
 						<TextArea
 							id="bannerMessage"
 							placeholder="e.g. Free soup with every momo platter today 🍲"
-							value={restaurantDetails?.bannerMessage || ""}
+							value={draftRestaurant?.bannerMessage || ""}
 							onChange={(e) =>
-								handleRestaurantDetailChange(
+								updateDraftRestaurantDetails(
 									"bannerMessage",
 									e.target.value,
 								)

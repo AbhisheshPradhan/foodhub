@@ -27,7 +27,7 @@ const sidebarItems: {
 	{ label: "Restaurant Details", href: "restaurant-details", icon: Store },
 	{ label: "Preferences", href: "preferences", icon: SlidersHorizontal },
 	{ label: "Branding", href: "branding", icon: Palette },
-	{ label: "QR Code Editor", href: "qr", icon: QrCodeIcon },
+	{ label: "QR Code Designer", href: "qr", icon: QrCodeIcon },
 ];
 
 export const DashboardSidebar = () => {
