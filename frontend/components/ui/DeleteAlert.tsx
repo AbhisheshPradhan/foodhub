@@ -21,7 +21,7 @@ export const DeleteAlert: React.FC<DeleteAlertProps> = ({
 	return (
 		<>
 			<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-				<div className="flex w-120 max-w-3xl flex-col rounded-xl bg-white shadow-xl h-50">
+				<div className="flex w-120 flex-col rounded-xl bg-white shadow-xl h-50">
 					<div className="flex items-center gap-3 px-5 pt-4 pb-3">
 						<h2 className="flex-1 text-lg font-semibold text-gray-900">
 							Delete {type}
