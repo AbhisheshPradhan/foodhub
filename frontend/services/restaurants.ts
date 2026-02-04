@@ -19,3 +19,24 @@ export async function getUserRestaurants() {
 		console.error("error creating restaurant", error);
 	}
 }
+
+export const checkSlugAvailability = async (
+	slug: string,
+	excludeId?: number,
+): Promise<{ available: boolean; error?: string }> => {
+	try {
+		const params = excludeId ? { excludeId } : {};
+		const response = await api.get(`/restaurants/check-slug/${slug}`, {
+			params,
+		});
+		return { available: true };
+	} catch (error: any) {
+		if (error.response?.status === 400) {
+			return {
+				available: false,
+				error: error.response.data.error || "Menu Url not available",
+			};
+		}
+		throw error;
+	}
+};

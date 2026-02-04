@@ -103,7 +103,7 @@ export const MenuItemFormModal = ({
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-			<div className="flex w-120 max-w-3xl flex-col rounded-xl bg-white shadow-xl  h-[50vh]">
+			<div className="flex w-120 flex-col rounded-xl bg-white shadow-xl  h-[50vh]">
 				<div className="flex-1 overflow-hidden flex flex-col h-full">
 					<div className="flex flex-col h-full">
 						<div className="flex items-center gap-3 px-5 pt-3 pb-3">

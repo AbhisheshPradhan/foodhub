@@ -3,6 +3,7 @@ import { Response, NextFunction } from "express";
 import { AuthRequest } from "../controllers/auth.controller.js";
 import { ErrorMessages, responseWrapper } from "../utils/api-response.js";
 import { verifyToken } from "../lib/aws.js";
+
 export const authenticate = async (
 	req: AuthRequest,
 	res: Response,

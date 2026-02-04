@@ -10,5 +10,6 @@ const router = Router();
 // router.get("/:id/menu", restaurantController.getMenu);
 router.post("/", restaurantController.createRestaurant);
 router.get("/", authenticate, restaurantController.getUserRestaurants);
+router.get("/check-slug/:slug", restaurantController.checkSlug);
 
 export default router;

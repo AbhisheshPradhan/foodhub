@@ -81,6 +81,9 @@ docker compose down
 
 # Stop and remove volumes (wipes database)
 docker compose down -v
+
+# Reset migrations
+docker compose exec backend npx prisma migrate reset
 ```
 
 ## Project Structure
