@@ -7,21 +7,6 @@ import { QrCodeConfig, QrFrameType } from "@/types";
 import { FRAME_SVG_MAP } from "./frame-svgs";
 
 const FRAME_TYPE_OPTIONS: { value: QrFrameType; label: string }[] = [
-	{ value: "bottom-text", label: "Bottom Text" },
-	{ value: "bottom-banner", label: "Banner" },
-	{ value: "rounded", label: "Rounded" },
-	{ value: "square", label: "Square" },
-	{ value: "full-border", label: "Full Border" },
-	{ value: "top-header", label: "Top Header" },
-	{ value: "ticket", label: "Ticket" },
-	{ value: "tilted", label: "Tilted" },
-	{ value: "balloon", label: "Balloon" },
-	{ value: "clipboard", label: "Clipboard" },
-	{ value: "shopping-bag", label: "Bag" },
-	{ value: "gift", label: "Gift" },
-	{ value: "star", label: "Star" },
-	{ value: "envelope", label: "Envelope" },
-	{ value: "coffee-cup", label: "Coffee Cup" },
 	{ value: "none", label: "None" },
 ];
 
@@ -49,9 +34,7 @@ export const QrFrameSection: React.FC<QrFrameSectionProps> = ({
 							<button
 								key={opt.value}
 								type="button"
-								onClick={() =>
-									onChange("frameType", opt.value)
-								}
+								onClick={() => onChange("frameType", opt.value)}
 								className={`flex flex-col items-center gap-1 rounded-lg p-2 transition-colors cursor-pointer ${
 									isSelected
 										? "bg-brand-50 ring-2 ring-brand-500 text-brand-700"
@@ -70,50 +53,60 @@ export const QrFrameSection: React.FC<QrFrameSectionProps> = ({
 				</div>
 			</div>
 
-			<div className="flex items-center gap-8">
-				<div className="flex-1">
-					<Label htmlFor="frameText">Frame Text</Label>
-					<TextInput
-						id="frameText"
-						placeholder="e.g. SCAN ME"
-						value={config.frameText}
-						onChange={(e) => onChange("frameText", e.target.value)}
-					/>
-				</div>
+			{config.frameType !== "none" && (
+				<>
+					<div className="flex items-center gap-8">
+						<div className="flex-1">
+							<Label htmlFor="frameText">Frame Text</Label>
+							<TextInput
+								id="frameText"
+								placeholder="e.g. SCAN ME"
+								value={config.frameText}
+								onChange={(e) =>
+									onChange("frameText", e.target.value)
+								}
+							/>
+						</div>
 
-				<div className="flex-1">
-					<Label htmlFor="frameColor">Frame Colour</Label>
-					<ColorPicker
-						id="frameColor"
-						value={config.frameColor}
-						onChange={(color) => onChange("frameColor", color)}
-					/>
-				</div>
-			</div>
+						<div className="flex-1">
+							<Label htmlFor="frameColor">Frame Colour</Label>
+							<ColorPicker
+								id="frameColor"
+								value={config.frameColor}
+								onChange={(color) =>
+									onChange("frameColor", color)
+								}
+							/>
+						</div>
+					</div>
 
-			<div className="flex items-center gap-8">
-				<div className="flex-1">
-					<Label htmlFor="frameBackgroundColor">
-						Background Colour
-					</Label>
-					<ColorPicker
-						id="frameBackgroundColor"
-						value={config.frameBackgroundColor}
-						onChange={(color) =>
-							onChange("frameBackgroundColor", color)
-						}
-					/>
-				</div>
+					<div className="flex items-center gap-8">
+						<div className="flex-1">
+							<Label htmlFor="frameBackgroundColor">
+								Background Colour
+							</Label>
+							<ColorPicker
+								id="frameBackgroundColor"
+								value={config.frameBackgroundColor}
+								onChange={(color) =>
+									onChange("frameBackgroundColor", color)
+								}
+							/>
+						</div>
 
-				<div className="flex-1">
-					<Label htmlFor="frameTextColor">Text Colour</Label>
-					<ColorPicker
-						id="frameTextColor"
-						value={config.frameTextColor}
-						onChange={(color) => onChange("frameTextColor", color)}
-					/>
-				</div>
-			</div>
+						<div className="flex-1">
+							<Label htmlFor="frameTextColor">Text Colour</Label>
+							<ColorPicker
+								id="frameTextColor"
+								value={config.frameTextColor}
+								onChange={(color) =>
+									onChange("frameTextColor", color)
+								}
+							/>
+						</div>
+					</div>
+				</>
+			)}
 		</>
 	);
 };

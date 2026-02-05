@@ -53,23 +53,7 @@ export type EditableCategory = {
 	description: string;
 };
 
-export type QrFrameType =
-	| "bottom-text"
-	| "bottom-banner"
-	| "rounded"
-	| "square"
-	| "full-border"
-	| "top-header"
-	| "ticket"
-	| "tilted"
-	| "balloon"
-	| "clipboard"
-	| "shopping-bag"
-	| "gift"
-	| "star"
-	| "envelope"
-	| "coffee-cup"
-	| "none";
+export type QrFrameType = "none";
 
 export type QrPatternStyle =
 	| "square"
@@ -103,6 +87,7 @@ export interface QrCodeConfig {
 export interface Restaurant {
 	id: number;
 	name: string;
+	menuUrl: string;
 	address?: string;
 	phone?: string;
 	email?: string;

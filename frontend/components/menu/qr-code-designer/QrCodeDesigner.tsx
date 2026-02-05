@@ -1,51 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, ChevronDown } from "lucide-react";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
-import { QrCodeConfig } from "@/types";
+import { useQrCodeConfig } from "@/contexts/QrCodeConfigContext";
 import { Button } from "@/components/ui/Button";
 import { QrFrameSection } from "./QrFrameSection";
 import { QrPatternSection } from "./QrPatternSection";
 import { QrCornersSection } from "./QrCornersSection";
 import { QrLogoSection } from "./QrLogoSection";
 
-const DEFAULT_QR_CONFIG: QrCodeConfig = {
-	frameType: "none",
-	frameText: "SCAN ME",
-	frameColor: "#000000",
-	frameBackgroundColor: "#ffffff",
-	frameTextColor: "#000000",
-	patternStyle: "square",
-	dotColor: "#000000",
-	patternBackgroundColor: "#ffffff",
-	cornerFrameStyle: "square",
-	cornerDotType: "square",
-	cornerFrameColor: "#000000",
-	cornerDotColor: "#000000",
-	useRestaurantLogo: false,
-	logoUrl: null,
-};
-
 export const QrCodeEditor = () => {
 	const { isLoading, selectedRestaurant } = useRestaurants();
+	const { config, updateConfig, setConfig, resetConfig, logoFile, setLogoFile } =
+		useQrCodeConfig();
 	const [isSaving, setIsSaving] = useState(false);
-	const [config, setConfig] = useState<QrCodeConfig>(
-		() => selectedRestaurant?.qrCodeConfig ?? DEFAULT_QR_CONFIG,
-	);
-	const [logoFile, setLogoFile] = useState<File | null>(null);
 	const [openSection, setOpenSection] = useState<string | null>("frame");
+
+	useEffect(() => {
+		if (selectedRestaurant?.qrCodeConfig) {
+			setConfig(selectedRestaurant.qrCodeConfig);
+		}
+	}, [selectedRestaurant?.qrCodeConfig, setConfig]);
+
+	useEffect(() => {
+		return () => resetConfig();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const toggleSection = (key: string) => {
 		setOpenSection((prev) => (prev === key ? null : key));
-	};
-
-	const updateConfig = <K extends keyof QrCodeConfig>(
-		key: K,
-		value: QrCodeConfig[K],
-	) => {
-		setConfig((prev) => ({ ...prev, [key]: value }));
 	};
 
 	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
