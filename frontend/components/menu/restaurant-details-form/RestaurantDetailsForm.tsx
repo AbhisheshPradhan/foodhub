@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 
@@ -8,14 +8,12 @@ import { useRestaurants } from "@/contexts/RestaurantContext";
 import { Label } from "@/components/form/Label";
 import { TextInput } from "@/components/form/input/TextInput";
 import { Button } from "@/components/ui/Button";
-import { PhoneInput } from "@/components/form/input/PhoneInput";
 import { SocialsInput } from "@/components/form/input/SocialsInput";
 import { PlaceAutocomplete } from "@/components/form/input/PlaceAutocomplete";
-import { checkSlugAvailability } from "@/services/restaurants";
 
 interface RestaurantDetailsFormData {
 	name: string;
-	menuUrl: string;
+	email: string;
 	address: string;
 	phone: string;
 	website: string;
@@ -34,10 +32,6 @@ export const RestaurantDetailsForm = () => {
 	} = useRestaurants();
 
 	const [isSaving, setIsSaving] = useState(false);
-	const [menuUrlHint, setMenuUrlHint] = useState("");
-	const [isMenuUrlAvailable, setIsMenuUrlAvailable] = useState(false);
-	const [isMenuUrlError, setIsMenuUrlError] = useState(false);
-	const menuUrlTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	const {
 		control,
@@ -48,7 +42,7 @@ export const RestaurantDetailsForm = () => {
 		mode: "onChange",
 		defaultValues: {
 			name: "",
-			menuUrl: "",
+			email: "",
 			address: "",
 			phone: "",
 			website: "",
@@ -60,9 +54,13 @@ export const RestaurantDetailsForm = () => {
 
 	useEffect(() => {
 		if (draftRestaurant) {
+			console.log(
+				"RestaurantDetailsForm draftRestaurant",
+				draftRestaurant,
+			);
 			reset({
 				name: draftRestaurant.name || "",
-				menuUrl: draftRestaurant.menuUrl || "",
+				email: draftRestaurant.email || "",
 				address: draftRestaurant.address || "",
 				phone: draftRestaurant.phone || "",
 				website: draftRestaurant.website || "",
@@ -78,26 +76,6 @@ export const RestaurantDetailsForm = () => {
 	}, [resetDraftRestaurantState]);
 
 	const onSubmit = async (data: RestaurantDetailsFormData) => {
-		if (data.menuUrl) {
-			try {
-				const result = await checkSlugAvailability(
-					data.menuUrl,
-					draftRestaurant?.id,
-				);
-				if (!result.available) {
-					setIsMenuUrlError(true);
-					setMenuUrlHint(
-						result.error || "Menu Url is not available.",
-					);
-					return;
-				}
-			} catch (error) {
-				setIsMenuUrlError(true);
-				setMenuUrlHint("Error validating Menu Url.");
-				return;
-			}
-		}
-
 		setIsSaving(true);
 
 		try {
@@ -122,46 +100,6 @@ export const RestaurantDetailsForm = () => {
 		}
 	};
 
-	const handleMenuUrlChange = (
-		value: string,
-		fieldOnChange: (value: string) => void,
-	) => {
-		if (menuUrlTimeoutRef.current) {
-			clearTimeout(menuUrlTimeoutRef.current);
-		}
-
-		fieldOnChange(value);
-		setIsMenuUrlError(false);
-		setMenuUrlHint("");
-		setIsMenuUrlAvailable(false);
-		updateDraftRestaurantDetails("menuUrl", value);
-
-		if (!value) {
-			return;
-		}
-
-		setMenuUrlHint("Checking...");
-		menuUrlTimeoutRef.current = setTimeout(async () => {
-			try {
-				const result = await checkSlugAvailability(
-					value,
-					draftRestaurant?.id,
-				);
-				if (result.available) {
-					setIsMenuUrlError(false);
-					setIsMenuUrlAvailable(true);
-					setMenuUrlHint("Available");
-				} else {
-					setIsMenuUrlError(true);
-					setMenuUrlHint(result.error || "Not available");
-				}
-			} catch (error) {
-				setIsMenuUrlError(false);
-				setMenuUrlHint("");
-			}
-		}, 500);
-	};
-
 	if (isLoading || !draftRestaurant) {
 		return null;
 	}
@@ -176,7 +114,7 @@ export const RestaurantDetailsForm = () => {
 						</h4>
 					</div>
 
-					<div className="flex justify-between items-center">
+					<div className="">
 						<Label htmlFor="name">
 							Restaurant Name{" "}
 							<span className="text-error-500">*</span>
@@ -207,36 +145,70 @@ export const RestaurantDetailsForm = () => {
 							/>
 						</div>
 					</div>
-					<div className="flex justify-between items-center">
-						<Label htmlFor="menu-url">
-							Menu Url <span className="text-error-500">*</span>
-						</Label>
+					<div className="flex ">
 						<div className="flex-1 max-w-2/3">
+							<Label htmlFor="website">Website</Label>
 							<Controller
-								name="menuUrl"
+								name="website"
 								control={control}
-								rules={{
-									required: "Menu Url is required",
-								}}
 								render={({ field }) => (
 									<TextInput
-										id="menuUrl"
-										placeholder="e.g. my-restaurant"
+										id="website"
+										placeholder="www.example.com"
 										value={field.value}
-										onChange={(e) =>
-											handleMenuUrlChange(
+										onChange={(e) => {
+											field.onChange(e.target.value);
+											updateDraftRestaurantDetails(
+												"website",
 												e.target.value,
-												field.onChange,
-											)
-										}
-										error={
-											!!errors.menuUrl || isMenuUrlError
-										}
-										hint={
-											errors.menuUrl?.message ||
-											menuUrlHint
-										}
-										success={isMenuUrlAvailable}
+											);
+										}}
+									/>
+								)}
+							/>
+						</div>
+					</div>
+
+					<div className="flex justify-between items-center gap-4">
+						<div className="flex-1">
+							<Label htmlFor="email">Email</Label>
+							<Controller
+								name="email"
+								control={control}
+								render={({ field }) => (
+									<TextInput
+										id="email"
+										placeholder="info@gmail.com"
+										value={field.value}
+										onChange={(e) => {
+											field.onChange(e.target.value);
+											updateDraftRestaurantDetails(
+												"email",
+												e.target.value,
+											);
+										}}
+									/>
+								)}
+							/>
+						</div>
+						<div className="shrink-0">
+							<Label htmlFor="phone">Phone</Label>
+
+							<Controller
+								name="phone"
+								control={control}
+								render={({ field }) => (
+									<TextInput
+										id="phone"
+										placeholder="+61"
+										value={field.value}
+										onChange={(e) => {
+											field.onChange(e.target.value);
+											updateDraftRestaurantDetails(
+												"phone",
+												e.target.value,
+											);
+										}}
 									/>
 								)}
 							/>
@@ -261,51 +233,6 @@ export const RestaurantDetailsForm = () => {
 								/>
 							)}
 						/>
-					</div>
-
-					<div className="flex justify-between items-center gap-4">
-						<div className="shrink-0">
-							<Label htmlFor="phone">Phone</Label>
-							<Controller
-								name="phone"
-								control={control}
-								render={({ field }) => (
-									<PhoneInput
-										id="phone"
-										value={field.value}
-										onChange={(phoneNumber) => {
-											field.onChange(phoneNumber);
-											updateDraftRestaurantDetails(
-												"phone",
-												phoneNumber,
-											);
-										}}
-										selectPosition="end"
-									/>
-								)}
-							/>
-						</div>
-						<div className="flex-1">
-							<Label htmlFor="website">Website</Label>
-							<Controller
-								name="website"
-								control={control}
-								render={({ field }) => (
-									<TextInput
-										id="website"
-										placeholder="www.example.com"
-										value={field.value}
-										onChange={(e) => {
-											field.onChange(e.target.value);
-											updateDraftRestaurantDetails(
-												"website",
-												e.target.value,
-											);
-										}}
-									/>
-								)}
-							/>
-						</div>
 					</div>
 					<div className="w-full">
 						<h4 className="border-t border-gray-200 pt-4 text-base font-medium text-gray-800 dark:border-gray-800 dark:text-white/90">

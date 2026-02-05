@@ -1,14 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Save } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
 import { Label } from "@/components/form/Label";
 import { TextInput } from "@/components/form/input/TextInput";
 import { TextArea } from "@/components/form/input/TextArea";
-import { CurrencySelect } from "@/components/form/input/CurrencySelect";
+import {
+	CurrencySelect,
+	type CurrencyCode,
+} from "@/components/form/input/CurrencySelect";
 import { Button } from "@/components/ui/Button";
+import { checkSlugAvailability } from "@/services/restaurants";
+
+interface PreferencesFormData {
+	menuUrl: string;
+	currency: CurrencyCode;
+	wifiName: string;
+	wifiPassword: string;
+	tagline: string;
+	announcement: string;
+	bannerMessage: string;
+}
 
 export const PreferencesForm = () => {
 	const {
@@ -19,17 +34,125 @@ export const PreferencesForm = () => {
 	} = useRestaurants();
 
 	const [isSaving, setIsSaving] = useState(false);
+	const [menuUrlHint, setMenuUrlHint] = useState("");
+	const [isMenuUrlAvailable, setIsMenuUrlAvailable] = useState(false);
+	const [isMenuUrlError, setIsMenuUrlError] = useState(false);
+	const menuUrlTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+	const {
+		control,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm<PreferencesFormData>({
+		mode: "onChange",
+		defaultValues: {
+			menuUrl: "",
+			currency: "AUD",
+			wifiName: "",
+			wifiPassword: "",
+			tagline: "",
+			announcement: "",
+			bannerMessage: "",
+		},
+	});
+
+	useEffect(() => {
+		if (draftRestaurant) {
+			reset({
+				menuUrl: draftRestaurant.menuUrl || "",
+				currency: draftRestaurant.currency || "AUD",
+				wifiName: draftRestaurant.wifiName || "",
+				wifiPassword: draftRestaurant.wifiPassword || "",
+				tagline: draftRestaurant.tagline || "",
+				announcement: draftRestaurant.announcement || "",
+				bannerMessage: draftRestaurant.bannerMessage || "",
+			});
+		}
+	}, [draftRestaurant, reset]);
 
 	useEffect(() => {
 		resetDraftRestaurantState();
 	}, [resetDraftRestaurantState]);
 
-	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const onSubmit = async (data: PreferencesFormData) => {
+		if (data.menuUrl) {
+			try {
+				const result = await checkSlugAvailability(
+					data.menuUrl,
+					draftRestaurant?.id,
+				);
+				if (!result.available) {
+					setIsMenuUrlError(true);
+					setMenuUrlHint(
+						result.error || "Menu Url is not available.",
+					);
+					return;
+				}
+			} catch (error) {
+				setIsMenuUrlError(true);
+				setMenuUrlHint("Error validating Menu Url.");
+				return;
+			}
+		}
+
 		setIsSaving(true);
-		console.log("handleSave draftRestaurant", draftRestaurant);
-		// TODO: Add actual save logic here
+
+		try {
+			Object.entries(data).forEach(([key, value]) => {
+				updateDraftRestaurantDetails(
+					key as keyof PreferencesFormData,
+					value,
+				);
+			});
+
+			console.log("handleSave draftRestaurant", data);
+			// TODO: Add actual save logic here
+		} catch (err) {
+			console.error("error saving preferences", err);
+		}
+
 		setIsSaving(false);
+	};
+
+	const handleMenuUrlChange = (
+		value: string,
+		fieldOnChange: (value: string) => void,
+	) => {
+		if (menuUrlTimeoutRef.current) {
+			clearTimeout(menuUrlTimeoutRef.current);
+		}
+
+		fieldOnChange(value);
+		setIsMenuUrlError(false);
+		setMenuUrlHint("");
+		setIsMenuUrlAvailable(false);
+		updateDraftRestaurantDetails("menuUrl", value);
+
+		if (!value) {
+			return;
+		}
+
+		setMenuUrlHint("Checking...");
+		menuUrlTimeoutRef.current = setTimeout(async () => {
+			try {
+				const result = await checkSlugAvailability(
+					value,
+					draftRestaurant?.id,
+				);
+				if (result.available) {
+					setIsMenuUrlError(false);
+					setIsMenuUrlAvailable(true);
+					setMenuUrlHint("Available");
+				} else {
+					setIsMenuUrlError(true);
+					setMenuUrlHint(result.error || "Not available");
+				}
+			} catch (error) {
+				setIsMenuUrlError(false);
+				setMenuUrlHint("");
+			}
+		}, 500);
 	};
 
 	if (isLoading || !draftRestaurant) {
@@ -37,54 +160,103 @@ export const PreferencesForm = () => {
 	}
 
 	return (
-		<form onSubmit={handleSave}>
+		<form onSubmit={handleSubmit(onSubmit)}>
 			<div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-				<div className="space-y-6 border-t border-gray-100 p-5 sm:p-5 dark:border-gray-800">
-					<div className="flex items-start gap-6">
-						<div>
-							<Label htmlFor="currency">Currency</Label>
-							<CurrencySelect
-								id="currency"
-								selectedCurrency={
-									draftRestaurant?.currency || "AUD"
-								}
-								onChange={(e) =>
-									updateDraftRestaurantDetails(
-										"currency",
-										e.target.value,
-									)
-								}
-							/>
-						</div>
+				<div className="flex flex-col space-y-6 *:space-y-6 border-t border-gray-100 p-5 sm:p-5 dark:border-gray-800">
+					<div className="flex-1 max-w-2/3">
+						<Label htmlFor="menu-url">
+							Menu Url <span className="text-error-500">*</span>
+						</Label>
+						<Controller
+							name="menuUrl"
+							control={control}
+							rules={{
+								required: "Menu Url is required",
+							}}
+							render={({ field }) => (
+								<TextInput
+									id="menuUrl"
+									placeholder="e.g. my-restaurant"
+									value={field.value}
+									onChange={(e) =>
+										handleMenuUrlChange(
+											e.target.value,
+											field.onChange,
+										)
+									}
+									error={!!errors.menuUrl || isMenuUrlError}
+									hint={
+										errors.menuUrl?.message || menuUrlHint
+									}
+									success={isMenuUrlAvailable}
+								/>
+							)}
+						/>
+					</div>
+					<div className="flex-1 max-w-2/3">
+						<Label htmlFor="currency">Currency</Label>
+						<Controller
+							name="currency"
+							control={control}
+							render={({ field }) => (
+								<CurrencySelect
+									id="currency"
+									selectedCurrency={field.value}
+									onChange={(e) => {
+										const value = e.target
+											.value as CurrencyCode;
+										field.onChange(value);
+										updateDraftRestaurantDetails(
+											"currency",
+											value,
+										);
+									}}
+								/>
+							)}
+						/>
 					</div>
 
-					<div>
+					<div className="flex-1">
 						<Label htmlFor="wifiName">WiFi</Label>
 						<div className="flex items-center gap-4">
 							<div className="flex-1">
-								<TextInput
-									id="wifiName"
-									placeholder="Network name"
-									value={draftRestaurant?.wifiName || ""}
-									onChange={(e) =>
-										updateDraftRestaurantDetails(
-											"wifiName",
-											e.target.value,
-										)
-									}
+								<Controller
+									name="wifiName"
+									control={control}
+									render={({ field }) => (
+										<TextInput
+											id="wifiName"
+											placeholder="Network name"
+											value={field.value}
+											onChange={(e) => {
+												field.onChange(e.target.value);
+												updateDraftRestaurantDetails(
+													"wifiName",
+													e.target.value,
+												);
+											}}
+										/>
+									)}
 								/>
 							</div>
 							<div className="flex-1">
-								<TextInput
-									id="wifiPassword"
-									placeholder="Password"
-									value={draftRestaurant?.wifiPassword || ""}
-									onChange={(e) =>
-										updateDraftRestaurantDetails(
-											"wifiPassword",
-											e.target.value,
-										)
-									}
+								<Controller
+									name="wifiPassword"
+									control={control}
+									render={({ field }) => (
+										<TextInput
+											id="wifiPassword"
+											placeholder="Password"
+											value={field.value}
+											onChange={(e) => {
+												field.onChange(e.target.value);
+												updateDraftRestaurantDetails(
+													"wifiPassword",
+													e.target.value,
+												);
+											}}
+										/>
+									)}
 								/>
 							</div>
 						</div>
@@ -104,17 +276,24 @@ export const PreferencesForm = () => {
 								restaurant name)
 							</span>
 						</Label>
-						<TextArea
-							id="tagline"
-							placeholder="e.g. Authentic Nepali Cuisine • Open till 10pm"
-							value={draftRestaurant?.tagline || ""}
-							onChange={(e) =>
-								updateDraftRestaurantDetails(
-									"tagline",
-									e.target.value,
-								)
-							}
-							rows={2}
+						<Controller
+							name="tagline"
+							control={control}
+							render={({ field }) => (
+								<TextArea
+									id="tagline"
+									placeholder="e.g. Authentic Nepali Cuisine • Open till 10pm"
+									value={field.value}
+									onChange={(e) => {
+										field.onChange(e.target.value);
+										updateDraftRestaurantDetails(
+											"tagline",
+											e.target.value,
+										);
+									}}
+									rows={2}
+								/>
+							)}
 						/>
 					</div>
 
@@ -125,17 +304,24 @@ export const PreferencesForm = () => {
 								(Displayed when the menu loads)
 							</span>
 						</Label>
-						<TextArea
-							id="announcement"
-							placeholder="e.g. Welcome! Please order at the counter."
-							value={draftRestaurant?.announcement || ""}
-							onChange={(e) =>
-								updateDraftRestaurantDetails(
-									"announcement",
-									e.target.value,
-								)
-							}
-							rows={2}
+						<Controller
+							name="announcement"
+							control={control}
+							render={({ field }) => (
+								<TextArea
+									id="announcement"
+									placeholder="e.g. Welcome! Please order at the counter."
+									value={field.value}
+									onChange={(e) => {
+										field.onChange(e.target.value);
+										updateDraftRestaurantDetails(
+											"announcement",
+											e.target.value,
+										);
+									}}
+									rows={2}
+								/>
+							)}
 						/>
 					</div>
 
@@ -146,18 +332,24 @@ export const PreferencesForm = () => {
 								(Displayed at the top)
 							</span>
 						</Label>
-
-						<TextArea
-							id="bannerMessage"
-							placeholder="e.g. Free soup with every momo platter today 🍲"
-							value={draftRestaurant?.bannerMessage || ""}
-							onChange={(e) =>
-								updateDraftRestaurantDetails(
-									"bannerMessage",
-									e.target.value,
-								)
-							}
-							rows={2}
+						<Controller
+							name="bannerMessage"
+							control={control}
+							render={({ field }) => (
+								<TextArea
+									id="bannerMessage"
+									placeholder="e.g. Free soup with every momo platter today 🍲"
+									value={field.value}
+									onChange={(e) => {
+										field.onChange(e.target.value);
+										updateDraftRestaurantDetails(
+											"bannerMessage",
+											e.target.value,
+										);
+									}}
+									rows={2}
+								/>
+							)}
 						/>
 					</div>
 
