@@ -61,7 +61,7 @@ export const SetupContacts: React.FC<SetupContactsProps> = ({
 							/>
 						</div>
 						<div>
-							<Label htmlFor="email">Contact Email </Label>
+							<Label htmlFor="email">Contact Email</Label>
 							<TextInput
 								id="email"
 								placeholder="Enter your Restaurant's contact email"

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Save } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
 import { Label } from "@/components/form/Label";
@@ -12,6 +13,17 @@ import { SocialsInput } from "@/components/form/input/SocialsInput";
 import { PlaceAutocomplete } from "@/components/form/input/PlaceAutocomplete";
 import { checkSlugAvailability } from "@/services/restaurants";
 
+interface RestaurantDetailsFormData {
+	name: string;
+	menuUrl: string;
+	address: string;
+	phone: string;
+	website: string;
+	facebook: string;
+	instagram: string;
+	tiktok: string;
+}
+
 export const RestaurantDetailsForm = () => {
 	const {
 		isLoading,
@@ -21,108 +33,110 @@ export const RestaurantDetailsForm = () => {
 		resetDraftRestaurantState,
 	} = useRestaurants();
 
-	const [isSaving, setIsSaving] = useState<boolean>(false);
-
-	const [nameError, setNameError] = useState(false);
-	const [nameHint, setNameHint] = useState("");
-
-	const [menuUrlError, setMenuUrlError] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
 	const [menuUrlHint, setMenuUrlHint] = useState("");
 	const [isMenuUrlAvailable, setIsMenuUrlAvailable] = useState(false);
+	const [isMenuUrlError, setIsMenuUrlError] = useState(false);
 	const menuUrlTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+	const {
+		control,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm<RestaurantDetailsFormData>({
+		mode: "onChange",
+		defaultValues: {
+			name: "",
+			menuUrl: "",
+			address: "",
+			phone: "",
+			website: "",
+			facebook: "",
+			instagram: "",
+			tiktok: "",
+		},
+	});
+
 	useEffect(() => {
-		return () => resetDraftRestaurantState();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+		if (draftRestaurant) {
+			reset({
+				name: draftRestaurant.name || "",
+				menuUrl: draftRestaurant.menuUrl || "",
+				address: draftRestaurant.address || "",
+				phone: draftRestaurant.phone || "",
+				website: draftRestaurant.website || "",
+				facebook: draftRestaurant.facebook || "",
+				instagram: draftRestaurant.instagram || "",
+				tiktok: draftRestaurant.tiktok || "",
+			});
+		}
+	}, [draftRestaurant, reset]);
 
-	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	useEffect(() => {
+		resetDraftRestaurantState();
+	}, [resetDraftRestaurantState]);
 
-		const isValid = await validateForm();
-		if (!isValid) return;
+	const onSubmit = async (data: RestaurantDetailsFormData) => {
+		if (data.menuUrl) {
+			try {
+				const result = await checkSlugAvailability(
+					data.menuUrl,
+					draftRestaurant?.id,
+				);
+				if (!result.available) {
+					setIsMenuUrlError(true);
+					setMenuUrlHint(
+						result.error || "Menu Url is not available.",
+					);
+					return;
+				}
+			} catch (error) {
+				setIsMenuUrlError(true);
+				setMenuUrlHint("Error validating Menu Url.");
+				return;
+			}
+		}
 
 		setIsSaving(true);
 
 		try {
+			console.log("onSubmit data", data);
+			Object.entries(data).forEach(([key, value]) => {
+				updateDraftRestaurantDetails(
+					key as keyof RestaurantDetailsFormData,
+					value,
+				);
+			});
+
 			setTimeout(() => {
-				updateSelectedRestaurantDetails(draftRestaurant!);
+				updateSelectedRestaurantDetails({
+					...draftRestaurant!,
+					...data,
+				});
 				setIsSaving(false);
 			}, 2000);
 		} catch (err) {
 			console.error("error saving restaurant details", err);
 			setIsSaving(false);
 		}
-
-		console.log("handleSave restaurantDetails", draftRestaurant);
 	};
 
-	const validateForm = async (): Promise<boolean> => {
-		let hasError = false;
-
-		if (!draftRestaurant?.name) {
-			setNameError(true);
-			setNameHint("Restaurant name is required.");
-			hasError = true;
-		} else {
-			setNameError(false);
-			setNameHint("");
-		}
-
-		if (!draftRestaurant?.menuUrl) {
-			setMenuUrlError(true);
-			setMenuUrlHint("Menu Url is required.");
-			hasError = true;
-		} else {
-			try {
-				const result = await checkSlugAvailability(
-					draftRestaurant.menuUrl,
-					draftRestaurant.id,
-				);
-
-				if (!result.available) {
-					setMenuUrlError(true);
-					setMenuUrlHint(
-						result.error || "Menu Url is not available.",
-					);
-					hasError = true;
-				} else {
-					setMenuUrlError(false);
-					setMenuUrlHint("");
-				}
-			} catch (error) {
-				setMenuUrlError(true);
-				setMenuUrlHint("Error validating Menu Url.");
-				hasError = true;
-			}
-		}
-
-		return !hasError;
-	};
-
-	const handleRestaurantNameChange = (value: string) => {
-		setNameError(false);
-		setNameHint("");
-		updateDraftRestaurantDetails("name", value);
-
-		if (!value) {
-			setNameError(true);
-			setNameHint("Restaurant name is required");
-		}
-	};
-
-	const handleMenuUrlChange = (value: string) => {
+	const handleMenuUrlChange = (
+		value: string,
+		fieldOnChange: (value: string) => void,
+	) => {
 		if (menuUrlTimeoutRef.current) {
 			clearTimeout(menuUrlTimeoutRef.current);
 		}
-		setMenuUrlError(false);
+
+		fieldOnChange(value);
+		setIsMenuUrlError(false);
 		setMenuUrlHint("");
 		setIsMenuUrlAvailable(false);
 		updateDraftRestaurantDetails("menuUrl", value);
 
 		if (!value) {
-			setMenuUrlError(true);
-			setMenuUrlHint("Menu Url is required");
 			return;
 		}
 
@@ -134,15 +148,15 @@ export const RestaurantDetailsForm = () => {
 					draftRestaurant?.id,
 				);
 				if (result.available) {
-					setMenuUrlError(false);
+					setIsMenuUrlError(false);
 					setIsMenuUrlAvailable(true);
 					setMenuUrlHint("Available");
 				} else {
-					setMenuUrlError(true);
+					setIsMenuUrlError(true);
 					setMenuUrlHint(result.error || "Not available");
 				}
 			} catch (error) {
-				setMenuUrlError(false);
+				setIsMenuUrlError(false);
 				setMenuUrlHint("");
 			}
 		}, 500);
@@ -153,167 +167,233 @@ export const RestaurantDetailsForm = () => {
 	}
 
 	return (
-		<>
-			<form onSubmit={handleSave}>
-				<div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-					<div className="space-y-6 border-t border-gray-100 p-5 sm:p-5 dark:border-gray-800">
-						<div className="w-full">
-							<h4 className="text-base font-medium text-gray-800 dark:border-gray-800 dark:text-white/90">
-								General Info
-							</h4>
-						</div>
+		<form onSubmit={handleSubmit(onSubmit)}>
+			<div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+				<div className="space-y-6 border-t border-gray-100 p-5 sm:p-5 dark:border-gray-800">
+					<div className="w-full">
+						<h4 className="text-base font-medium text-gray-800 dark:border-gray-800 dark:text-white/90">
+							General Info
+						</h4>
+					</div>
 
-						<div className="flex justify-between items-center">
-							<Label htmlFor="name">
-								Restaurant Name{" "}
-								<span className="text-error-500">*</span>
-							</Label>
-							<div className="flex-1 max-w-2/3">
-								<TextInput
-									id="name"
-									placeholder="Enter your Restaurant's name"
-									value={draftRestaurant?.name}
-									onChange={(e) => {
-										handleRestaurantNameChange(
-											e.target.value,
+					<div className="flex justify-between items-center">
+						<Label htmlFor="name">
+							Restaurant Name{" "}
+							<span className="text-error-500">*</span>
+						</Label>
+						<div className="flex-1 max-w-2/3">
+							<Controller
+								name="name"
+								control={control}
+								rules={{
+									required: "Restaurant name is required",
+								}}
+								render={({ field }) => (
+									<TextInput
+										id="name"
+										placeholder="Enter your Restaurant's name"
+										value={field.value}
+										onChange={(e) => {
+											field.onChange(e.target.value);
+											updateDraftRestaurantDetails(
+												"name",
+												e.target.value,
+											);
+										}}
+										error={!!errors.name}
+										hint={errors.name?.message}
+									/>
+								)}
+							/>
+						</div>
+					</div>
+					<div className="flex justify-between items-center">
+						<Label htmlFor="menu-url">
+							Menu Url <span className="text-error-500">*</span>
+						</Label>
+						<div className="flex-1 max-w-2/3">
+							<Controller
+								name="menuUrl"
+								control={control}
+								rules={{
+									required: "Menu Url is required",
+								}}
+								render={({ field }) => (
+									<TextInput
+										id="menuUrl"
+										placeholder="e.g. my-restaurant"
+										value={field.value}
+										onChange={(e) =>
+											handleMenuUrlChange(
+												e.target.value,
+												field.onChange,
+											)
+										}
+										error={
+											!!errors.menuUrl || isMenuUrlError
+										}
+										hint={
+											errors.menuUrl?.message ||
+											menuUrlHint
+										}
+										success={isMenuUrlAvailable}
+									/>
+								)}
+							/>
+						</div>
+					</div>
+					<div>
+						<Label htmlFor="address">Address</Label>
+						<Controller
+							name="address"
+							control={control}
+							render={({ field }) => (
+								<PlaceAutocomplete
+									placeholder="Search restaurant location"
+									defaultValue={field.value}
+									onChange={(address) => {
+										field.onChange(address);
+										updateDraftRestaurantDetails(
+											"address",
+											address,
 										);
 									}}
-									error={nameError}
-									hint={nameHint}
 								/>
-							</div>
+							)}
+						/>
+					</div>
+
+					<div className="flex justify-between items-center gap-4">
+						<div className="shrink-0">
+							<Label htmlFor="phone">Phone</Label>
+							<Controller
+								name="phone"
+								control={control}
+								render={({ field }) => (
+									<PhoneInput
+										id="phone"
+										value={field.value}
+										onChange={(phoneNumber) => {
+											field.onChange(phoneNumber);
+											updateDraftRestaurantDetails(
+												"phone",
+												phoneNumber,
+											);
+										}}
+										selectPosition="end"
+									/>
+								)}
+							/>
 						</div>
-						<div className="flex justify-between items-center">
-							<Label htmlFor="menu-url">
-								Menu Url{" "}
-								<span className="text-error-500">*</span>
-							</Label>
-							<div className="flex-1 max-w-2/3">
-								<TextInput
-									id="menuUrl"
-									placeholder="e.g. my-restaurant"
-									value={draftRestaurant?.menuUrl || ""}
-									onChange={(e) => {
-										handleMenuUrlChange(e.target.value);
-									}}
-									error={menuUrlError}
-									hint={menuUrlHint}
-									success={isMenuUrlAvailable}
-								/>
-							</div>
+						<div className="flex-1">
+							<Label htmlFor="website">Website</Label>
+							<Controller
+								name="website"
+								control={control}
+								render={({ field }) => (
+									<TextInput
+										id="website"
+										placeholder="www.example.com"
+										value={field.value}
+										onChange={(e) => {
+											field.onChange(e.target.value);
+											updateDraftRestaurantDetails(
+												"website",
+												e.target.value,
+											);
+										}}
+									/>
+								)}
+							/>
 						</div>
-						<div>
-							<Label htmlFor="address">Address</Label>
-							<PlaceAutocomplete
-								placeholder="Search restaurant location"
-								defaultValue={draftRestaurant?.address}
-								onChange={(address) =>
-									updateDraftRestaurantDetails(
-										"address",
-										address,
-									)
-								}
+					</div>
+					<div className="w-full">
+						<h4 className="border-t border-gray-200 pt-4 text-base font-medium text-gray-800 dark:border-gray-800 dark:text-white/90">
+							Socials
+						</h4>
+					</div>
+					<div className="flex justify-between items-center gap-4">
+						<div className="flex-1">
+							<Label htmlFor="facebook">Facebook</Label>
+							<Controller
+								name="facebook"
+								control={control}
+								render={({ field }) => (
+									<SocialsInput
+										id="facebook"
+										value={field.value}
+										onChange={(e) => {
+											field.onChange(e.target.value);
+											updateDraftRestaurantDetails(
+												"facebook",
+												e.target.value,
+											);
+										}}
+									/>
+								)}
 							/>
 						</div>
 
-						<div className="flex justify-between items-center gap-4">
-							<div className="shrink-0">
-								<Label htmlFor="phone">Phone</Label>
-								<PhoneInput
-									id="phone"
-									value={draftRestaurant?.phone || ""}
-									onChange={(phoneNumber) =>
-										updateDraftRestaurantDetails(
-											"phone",
-											phoneNumber,
-										)
-									}
-									selectPosition={"end"}
-								/>
-							</div>
-							<div className="flex-1">
-								<Label htmlFor="website">Website</Label>
+						<div className="flex-1">
+							<Label htmlFor="instagram">Instagram</Label>
+							<Controller
+								name="instagram"
+								control={control}
+								render={({ field }) => (
+									<SocialsInput
+										id="instagram"
+										value={field.value}
+										onChange={(e) => {
+											field.onChange(e.target.value);
+											updateDraftRestaurantDetails(
+												"instagram",
+												e.target.value,
+											);
+										}}
+									/>
+								)}
+							/>
+						</div>
+					</div>
+					<div className="flex justify-between items-center gap-4">
+						<div className="flex-1">
+							<Label htmlFor="tiktok">TikTok</Label>
+							<Controller
+								name="tiktok"
+								control={control}
+								render={({ field }) => (
+									<SocialsInput
+										id="tiktok"
+										value={field.value}
+										onChange={(e) => {
+											field.onChange(e.target.value);
+											updateDraftRestaurantDetails(
+												"tiktok",
+												e.target.value,
+											);
+										}}
+									/>
+								)}
+							/>
+						</div>
+						<div className="flex-1"></div>
+					</div>
 
-								<TextInput
-									id="website"
-									placeholder="www.example.com"
-									value={draftRestaurant?.website}
-									onChange={(e) =>
-										updateDraftRestaurantDetails(
-											"website",
-											e.target.value,
-										)
-									}
-								/>
-							</div>
-						</div>
-						<div className="w-full">
-							<h4 className="border-t border-gray-200 pt-4 text-base font-medium text-gray-800 dark:border-gray-800 dark:text-white/90">
-								Socials
-							</h4>
-						</div>
-						<div className="flex justify-between items-center gap-4">
-							<div className="flex-1">
-								<Label htmlFor="facebook">Facebook</Label>
-								<SocialsInput
-									id="facebook"
-									value={draftRestaurant?.facebook || ""}
-									onChange={(e) =>
-										updateDraftRestaurantDetails(
-											"facebook",
-											e.target.value,
-										)
-									}
-								/>
-							</div>
-
-							<div className="flex-1">
-								<Label htmlFor="instagram">Instagram</Label>
-								<SocialsInput
-									id="instagram"
-									value={draftRestaurant?.instagram || ""}
-									onChange={(e) =>
-										updateDraftRestaurantDetails(
-											"instagram",
-											e.target.value,
-										)
-									}
-								/>
-							</div>
-						</div>
-						<div className="flex justify-between items-center gap-4">
-							<div className="flex-1">
-								<Label htmlFor="tiktok">TikTok</Label>
-								<SocialsInput
-									id="tiktok"
-									value={draftRestaurant?.facebook || ""}
-									onChange={(e) =>
-										updateDraftRestaurantDetails(
-											"tiktok",
-											e.target.value,
-										)
-									}
-								/>
-							</div>
-							<div className="flex-1"></div>
-						</div>
-
-						<div className="w-full">
-							<div className="mt-1 flex items-center gap-4 justify-end">
-								<Button
-									type="submit"
-									variant="primary"
-									disabled={isSaving}
-									startIcon={<Save size={16} />}
-									size="sm"
-								>
-									{isSaving ? "Saving..." : "Save Changes"}
-								</Button>
-							</div>
+					<div className="w-full">
+						<div className="mt-1 flex items-center gap-4 justify-end">
+							<Button
+								type="submit"
+								variant="primary"
+								disabled={isSaving}
+								startIcon={<Save size={16} />}
+								size="sm"
+							>
+								{isSaving ? "Saving..." : "Save Changes"}
+							</Button>
 						</div>
 					</div>
 				</div>
-			</form>
-		</>
+			</div>
+		</form>
 	);
 };

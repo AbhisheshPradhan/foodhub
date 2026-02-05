@@ -12,9 +12,16 @@ import { QrCornersSection } from "./QrCornersSection";
 import { QrLogoSection } from "./QrLogoSection";
 
 export const QrCodeEditor = () => {
-	const { isLoading, selectedRestaurant } = useRestaurants();
-	const { config, updateConfig, setConfig, resetConfig, logoFile, setLogoFile } =
-		useQrCodeConfig();
+	const { isLoading, selectedRestaurant, resetDraftRestaurantState } =
+		useRestaurants();
+	const {
+		config,
+		updateConfig,
+		setConfig,
+		resetConfig,
+		logoFile,
+		setLogoFile,
+	} = useQrCodeConfig();
 	const [isSaving, setIsSaving] = useState(false);
 	const [openSection, setOpenSection] = useState<string | null>("frame");
 
@@ -25,9 +32,8 @@ export const QrCodeEditor = () => {
 	}, [selectedRestaurant?.qrCodeConfig, setConfig]);
 
 	useEffect(() => {
-		return () => resetConfig();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+		resetDraftRestaurantState();
+	}, [resetDraftRestaurantState]);
 
 	const toggleSection = (key: string) => {
 		setOpenSection((prev) => (prev === key ? null : key));

@@ -17,18 +17,20 @@ export const PreferencesForm = () => {
 		updateDraftRestaurantDetails,
 		resetDraftRestaurantState,
 	} = useRestaurants();
-	const [isSaving, setIsSaving] = useState<boolean>(false);
+
+	const [isSaving, setIsSaving] = useState(false);
+
+	useEffect(() => {
+		resetDraftRestaurantState();
+	}, [resetDraftRestaurantState]);
 
 	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setIsSaving(true);
 		console.log("handleSave draftRestaurant", draftRestaurant);
+		// TODO: Add actual save logic here
+		setIsSaving(false);
 	};
-
-	useEffect(() => {
-		return () => resetDraftRestaurantState();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
 
 	if (isLoading || !draftRestaurant) {
 		return null;

@@ -31,9 +31,8 @@ export const BrandingForm = () => {
 	);
 
 	useEffect(() => {
-		return () => resetDraftRestaurantState();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+		resetDraftRestaurantState();
+	}, [resetDraftRestaurantState]);
 
 	const handleLogoSelect = (file: File) => {
 		setLogoFile(file);

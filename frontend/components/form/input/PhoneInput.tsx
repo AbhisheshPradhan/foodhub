@@ -26,7 +26,7 @@ const countries: CountryCode[] = [
 export const PhoneInput: React.FC<PhoneInputProps> = ({
 	id,
 	value,
-	placeholder = "+61 451 123 123",
+	placeholder = "+61 ",
 	onChange,
 	selectPosition = "start",
 }) => {
