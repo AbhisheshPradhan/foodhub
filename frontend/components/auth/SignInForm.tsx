@@ -4,106 +4,58 @@ import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { EyeClosedIcon, EyeIcon, LoaderCircle } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
 
 import { Label } from "../form/Label";
 import { TextInput } from "../form/input/TextInput";
 import { Button } from "../ui/Button";
 import { signIn } from "@/services/cognito";
 import { getOrCreateUser } from "@/services/auth";
+import { EMAIL_REGEX } from "./utils";
+
+interface SignInFormData {
+	email: string;
+	password: string;
+}
 
 export const SignInForm = () => {
 	const searchParams = useSearchParams();
 	const emailSearch = searchParams.get("email");
 	const router = useRouter();
 
-	const [email, setEmail] = useState(emailSearch || "");
-	const [emailError, setEmailError] = useState(false);
-	const [emailHint, setEmailHint] = useState("");
-
-	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
-	const [passwordError, setPasswordError] = useState(false);
-	const [passwordHint, setPasswordHint] = useState("");
-
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");
 
-	const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const {
+		control,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<SignInFormData>({
+		defaultValues: {
+			email: emailSearch || "",
+			password: "",
+		},
+	});
+
+	const onSubmit = async (data: SignInFormData) => {
 		setError("");
 		setIsLoading(true);
 
-		if (validateInputs()) {
-			try {
-				await signIn(email, password).then(async (res) => {
-					await getOrCreateUser();
-					router.refresh();
-				});
-			} catch (error: any) {
-				if (error.code === "UserNotConfirmedException") {
-					redirect(`/verify?email=${email}`);
-				} else {
-					setError("Invalid Username or Password");
-					setIsLoading(false);
-					console.error(error);
-				}
+		try {
+			await signIn(data.email, data.password).then(async () => {
+				await getOrCreateUser();
+				router.refresh();
+			});
+		} catch (error) {
+			const err = error as { code?: string };
+			if (err.code === "UserNotConfirmedException") {
+				redirect(`/verify?email=${data.email}`);
+			} else {
+				setError("Invalid Username or Password");
+				setIsLoading(false);
+				console.error(error);
 			}
-		} else {
-			setIsLoading(false);
-		}
-	};
-
-	const validateInputs = () => {
-		let isValidInput = true;
-		if (!email) {
-			setEmailError(true);
-			setEmailHint("Email is required");
-			isValidInput = false;
-		}
-		if (email && !isValidEmail(email)) {
-			setEmailError(true);
-			setEmailHint("Invalid email");
-			isValidInput = false;
-		}
-		if (!password) {
-			setPasswordError(true);
-			setPasswordHint("Password is required");
-			isValidInput = false;
-		}
-		if (password && (password.length < 8 || password.length > 16)) {
-			setPasswordError(true);
-			setPasswordHint("Password must be 8-16 characters");
-			isValidInput = false;
-		}
-
-		return isValidInput;
-	};
-
-	const isValidEmail = (email: string) => {
-		const regex =
-			/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-		return regex.test(String(email).toLowerCase());
-	};
-
-	const handleEmailChange = (value: string) => {
-		setEmail(value);
-		setEmailError(false);
-		setEmailHint("");
-
-		if (!value) {
-			setEmailError(true);
-			setEmailHint("Email is required");
-		}
-	};
-
-	const handlePasswordChange = (value: string) => {
-		setPassword(value);
-		setPasswordError(false);
-		setPasswordHint("");
-
-		if (!value) {
-			setPasswordError(true);
-			setPasswordHint("Password is required");
 		}
 	};
 
@@ -120,7 +72,7 @@ export const SignInForm = () => {
 						</p>
 					</div>
 					<div>
-						<form onSubmit={handleSignIn}>
+						<form onSubmit={handleSubmit(onSubmit)}>
 							<div className="space-y-6">
 								<div>
 									<Label htmlFor="email">
@@ -129,15 +81,26 @@ export const SignInForm = () => {
 											*
 										</span>
 									</Label>
-									<TextInput
-										id="email"
-										placeholder="info@gmail.com"
-										value={email}
-										onChange={(e) =>
-											handleEmailChange(e.target.value)
-										}
-										error={emailError}
-										hint={emailHint}
+									<Controller
+										name="email"
+										control={control}
+										rules={{
+											required: "Email is required",
+											pattern: {
+												value: EMAIL_REGEX,
+												message: "Invalid email",
+											},
+										}}
+										render={({ field }) => (
+											<TextInput
+												id="email"
+												placeholder="info@gmail.com"
+												value={field.value}
+												onChange={field.onChange}
+												error={!!errors.email}
+												hint={errors.email?.message}
+											/>
+										)}
 									/>
 								</div>
 								<div>
@@ -148,31 +111,47 @@ export const SignInForm = () => {
 										</span>
 									</Label>
 									<div className="relative">
-										<TextInput
-											id="password"
-											type={
-												showPassword
-													? "text"
-													: "password"
-											}
-											placeholder="Enter your password"
-											value={password}
-											onChange={(e) =>
-												handlePasswordChange(
-													e.target.value,
-												)
-											}
-											minLength={8}
-											maxLength={16}
-											error={passwordError}
-											hint={passwordHint}
+										<Controller
+											name="password"
+											control={control}
+											rules={{
+												required:
+													"Password is required",
+												minLength: {
+													value: 8,
+													message:
+														"Password must be at least 8 characters",
+												},
+												maxLength: {
+													value: 16,
+													message:
+														"Password must be at most 16 characters",
+												},
+											}}
+											render={({ field }) => (
+												<TextInput
+													id="password"
+													type={
+														showPassword
+															? "text"
+															: "password"
+													}
+													placeholder="Enter your password"
+													value={field.value}
+													onChange={field.onChange}
+													error={!!errors.password}
+													hint={
+														errors.password?.message
+													}
+												/>
+											)}
 										/>
 										<button
 											type="button"
 											onClick={() =>
 												setShowPassword(!showPassword)
 											}
-											className={`absolute top-1/2 right-4 z-30 ${!passwordError ? "-translate-y-2" : "-translate-y-5"} cursor-pointer`}
+											className={`absolute top-1/2 right-4 z-30 ${!errors.password ? "-translate-y-2" : "-translate-y-5"} cursor-pointer`}
 											aria-label={
 												showPassword
 													? "Hide password"

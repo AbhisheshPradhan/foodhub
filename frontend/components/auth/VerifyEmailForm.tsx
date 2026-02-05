@@ -1,61 +1,60 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
 
 import { Label } from "../form/Label";
 import { TextInput } from "../form/input/TextInput";
 import { Button } from "../ui/Button";
 import { confirmSignUp, resendConfirmationCode } from "@/services/cognito";
-import { useAuthValidation } from "@/hooks/useAuthValidation";
+
+interface VerifyEmailFormData {
+	verificationCode: string;
+}
 
 export const VerifyEmailForm = () => {
 	const router = useRouter();
-	const {
-		setError,
-		setIsLoading,
-		verificationCode,
-		setVerificationCodeError,
-		setVerificationCodeHint,
-		handleVerificationCodeChange,
-		verificationCodeError,
-		verificationCodeHint,
-		isLoading,
-		error,
-	} = useAuthValidation();
-
 	const searchParams = useSearchParams();
 	const email = searchParams.get("email");
+
+	const [isVerifying, setIsVerifying] = useState(false);
+	const [isResending, setIsResending] = useState(false);
+	const [error, setError] = useState("");
+
+	const {
+		control,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<VerifyEmailFormData>({
+		defaultValues: {
+			verificationCode: "",
+		},
+	});
+
 	if (!email) {
 		router.replace("/login");
 		return;
 	}
 
-	const handleVerification = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const onSubmit = async (data: VerifyEmailFormData) => {
 		setError("");
+		setIsVerifying(true);
 
-		if (!verificationCode) {
-			setVerificationCodeError(true);
-			setVerificationCodeHint("Verification code is required");
-			return;
-		}
-
-		setIsLoading(true);
 		try {
-			await confirmSignUp(email, verificationCode).then((res) => {
-				router.replace(`/login?email=${email}`);
-			});
+			await confirmSignUp(email, data.verificationCode);
+			router.replace(`/login?email=${email}`);
 		} catch (error) {
 			console.error(error);
 			setError("Verification failed. Please try again.");
 		}
-		setIsLoading(false);
+		setIsVerifying(false);
 	};
 
 	const handleResendCode = async () => {
 		setError("");
-		setIsLoading(true);
+		setIsResending(true);
 		try {
 			await resendConfirmationCode(email);
 			setError("");
@@ -64,7 +63,7 @@ export const VerifyEmailForm = () => {
 			console.error(error);
 			setError("Failed to resend code. Please try again.");
 		}
-		setIsLoading(false);
+		setIsResending(false);
 	};
 
 	return (
@@ -82,25 +81,33 @@ export const VerifyEmailForm = () => {
 							</span>
 						</p>
 					</div>
-					<form onSubmit={handleVerification}>
+					<form onSubmit={handleSubmit(onSubmit)}>
 						<div className="space-y-6">
 							<div>
 								<Label htmlFor="verificationCode">
 									Verification Code{" "}
 									<span className="text-error-500">*</span>
 								</Label>
-								<TextInput
-									id="verificationCode"
-									type="text"
-									placeholder="Enter verification code"
-									value={verificationCode}
-									onChange={(e) =>
-										handleVerificationCodeChange(
-											e.target.value,
-										)
-									}
-									error={verificationCodeError}
-									hint={verificationCodeHint}
+								<Controller
+									name="verificationCode"
+									control={control}
+									rules={{
+										required:
+											"Verification code is required",
+									}}
+									render={({ field }) => (
+										<TextInput
+											id="verificationCode"
+											type="text"
+											placeholder="Enter verification code"
+											value={field.value}
+											onChange={field.onChange}
+											error={!!errors.verificationCode}
+											hint={
+												errors.verificationCode?.message
+											}
+										/>
+									)}
 								/>
 							</div>
 							{error && (
@@ -113,22 +120,25 @@ export const VerifyEmailForm = () => {
 									className="w-full"
 									size="sm"
 									type="submit"
-									disabled={isLoading}
+									disabled={isVerifying}
 								>
-									{isLoading && (
+									{isVerifying && (
 										<LoaderCircle className="size-5 animate-spin" />
 									)}
 									Verify Email
 								</Button>
 							</div>
 							<div className="text-center">
+								<span className="text-sm text-gray-500 dark:text-gray-400">
+									Didn&apos;t receive a code?{" "}
+								</span>
 								<button
 									type="button"
 									onClick={handleResendCode}
-									disabled={isLoading}
+									disabled={isResending}
 									className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400 disabled:opacity-50"
 								>
-									Didn&apos;t receive a code? Resend
+									Resend
 								</button>
 							</div>
 						</div>

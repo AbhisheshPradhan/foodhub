@@ -1,63 +1,64 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EyeClosedIcon, EyeIcon, LoaderCircle, Check, X } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
 
 import { Label } from "../form/Label";
 import { TextInput } from "../form/input/TextInput";
 import { Button } from "../ui/Button";
 import { signUp } from "@/services/cognito";
-import { useAuthValidation } from "@/hooks/useAuthValidation";
+import { EMAIL_REGEX } from "./utils";
+
+interface SignUpFormData {
+	name: string;
+	email: string;
+	password: string;
+	confirmPassword: string;
+}
 
 export const SignUpForm = () => {
 	const router = useRouter();
-	const {
-		name,
-		handleNameChange,
-		nameError,
-		nameHint,
-		email,
-		handleEmailChange,
-		emailError,
-		emailHint,
-		password,
-		handlePasswordChange,
-		showPassword,
-		passwordError,
-		passwordHint,
-		setShowPassword,
-		hasMinLength,
-		hasNumber,
-		hasLowercase,
-		hasUppercase,
-		hasSymbol,
-		confirmPassword,
-		showConfirmPassword,
-		setShowConfirmPassword,
-		handleConfirmPasswordChange,
-		confirmPasswordError,
-		confirmPasswordHint,
-		setError,
-		setIsLoading,
-		validateInputs,
-		isLoading,
-		error,
-	} = useAuthValidation();
 
-	const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState("");
+
+	const {
+		control,
+		handleSubmit,
+		watch,
+		formState: { errors },
+	} = useForm<SignUpFormData>({
+		defaultValues: {
+			name: "",
+			email: "",
+			password: "",
+			confirmPassword: "",
+		},
+	});
+
+	const password = watch("password");
+
+	const hasMinLength = password.length >= 8;
+	const hasNumber = /\d/.test(password);
+	const hasLowercase = /[a-z]/.test(password);
+	const hasUppercase = /[A-Z]/.test(password);
+	const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+	const onSubmit = async (data: SignUpFormData) => {
 		setError("");
 		setIsLoading(true);
 
-		if (validateInputs("sign-up")) {
-			try {
-				await signUp(name, email, password);
-				router.replace(`/verify?email=${email}`);
-			} catch (error: unknown) {
-				console.error(error);
-				setError("Sign up failed. Please try again.");
-			}
+		try {
+			await signUp(data.name, data.email, data.password);
+			router.replace(`/verify?email=${data.email}`);
+		} catch (error: unknown) {
+			console.error(error);
+			setError("Sign up failed. Please try again.");
 		}
 		setIsLoading(false);
 	};
@@ -75,25 +76,37 @@ export const SignUpForm = () => {
 						</p>
 					</div>
 					<div>
-						<form onSubmit={handleSignUp}>
+						<form onSubmit={handleSubmit(onSubmit)}>
 							<div className="space-y-5">
 								<div>
-									<Label htmlFor="email">
+									<Label htmlFor="name">
 										Name{" "}
 										<span className="text-error-500">
 											*
 										</span>
 									</Label>
-									<TextInput
-										id="name"
-										type="text"
-										placeholder="Enter your name"
-										value={name}
-										onChange={(e) =>
-											handleNameChange(e.target.value)
-										}
-										error={nameError}
-										hint={nameHint}
+									<Controller
+										name="name"
+										control={control}
+										rules={{
+											required: "Name is required",
+											minLength: {
+												value: 2,
+												message:
+													"Name must be at least 2 characters",
+											},
+										}}
+										render={({ field }) => (
+											<TextInput
+												id="name"
+												type="text"
+												placeholder="Enter your name"
+												value={field.value}
+												onChange={field.onChange}
+												error={!!errors.name}
+												hint={errors.name?.message}
+											/>
+										)}
 									/>
 								</div>
 								<div>
@@ -103,16 +116,27 @@ export const SignUpForm = () => {
 											*
 										</span>
 									</Label>
-									<TextInput
-										id="email"
-										type="email"
-										placeholder="Enter your email"
-										value={email}
-										onChange={(e) =>
-											handleEmailChange(e.target.value)
-										}
-										error={emailError}
-										hint={emailHint}
+									<Controller
+										name="email"
+										control={control}
+										rules={{
+											required: "Email is required",
+											pattern: {
+												value: EMAIL_REGEX,
+												message: "Invalid email",
+											},
+										}}
+										render={({ field }) => (
+											<TextInput
+												id="email"
+												type="email"
+												placeholder="Enter your email"
+												value={field.value}
+												onChange={field.onChange}
+												error={!!errors.email}
+												hint={errors.email?.message}
+											/>
+										)}
 									/>
 								</div>
 								<div>
@@ -123,29 +147,58 @@ export const SignUpForm = () => {
 										</span>
 									</Label>
 									<div className="relative">
-										<TextInput
-											id="password"
-											placeholder="Enter password"
-											type={
-												showPassword
-													? "text"
-													: "password"
-											}
-											value={password}
-											onChange={(e) =>
-												handlePasswordChange(
-													e.target.value,
-												)
-											}
-											error={passwordError}
-											hint={passwordHint}
+										<Controller
+											name="password"
+											control={control}
+											rules={{
+												required:
+													"Password is required",
+												minLength: {
+													value: 8,
+													message:
+														"Password must be at least 8 characters",
+												},
+												validate: {
+													hasNumber: (value) =>
+														/\d/.test(value) ||
+														"Password must contain a number",
+													hasLowercase: (value) =>
+														/[a-z]/.test(value) ||
+														"Password must contain a lowercase letter",
+													hasUppercase: (value) =>
+														/[A-Z]/.test(value) ||
+														"Password must contain an uppercase letter",
+													hasSymbol: (value) =>
+														/[!@#$%^&*(),.?":{}|<>]/.test(
+															value,
+														) ||
+														"Password must contain a symbol",
+												},
+											}}
+											render={({ field }) => (
+												<TextInput
+													id="password"
+													placeholder="Enter password"
+													type={
+														showPassword
+															? "text"
+															: "password"
+													}
+													value={field.value}
+													onChange={field.onChange}
+													error={!!errors.password}
+													hint={
+														errors.password?.message
+													}
+												/>
+											)}
 										/>
 										<button
 											type="button"
 											onClick={() =>
 												setShowPassword(!showPassword)
 											}
-											className={`absolute top-1/2 right-4 z-30 ${!passwordError ? "-translate-y-2" : "-translate-y-5"} cursor-pointer`}
+											className={`absolute top-1/2 right-4 z-30 ${!errors.password ? "-translate-y-2" : "-translate-y-5"} cursor-pointer`}
 											aria-label={
 												showPassword
 													? "Hide password"
@@ -193,22 +246,36 @@ export const SignUpForm = () => {
 										</span>
 									</Label>
 									<div className="relative">
-										<TextInput
-											id="confirmPassword"
-											placeholder="Re-enter password"
-											type={
-												showConfirmPassword
-													? "text"
-													: "password"
-											}
-											value={confirmPassword}
-											onChange={(e) =>
-												handleConfirmPasswordChange(
-													e.target.value,
-												)
-											}
-											error={confirmPasswordError}
-											hint={confirmPasswordHint}
+										<Controller
+											name="confirmPassword"
+											control={control}
+											rules={{
+												required:
+													"Please confirm your password",
+												validate: (value) =>
+													value === password ||
+													"Passwords do not match",
+											}}
+											render={({ field }) => (
+												<TextInput
+													id="confirmPassword"
+													placeholder="Re-enter password"
+													type={
+														showConfirmPassword
+															? "text"
+															: "password"
+													}
+													value={field.value}
+													onChange={field.onChange}
+													error={
+														!!errors.confirmPassword
+													}
+													hint={
+														errors.confirmPassword
+															?.message
+													}
+												/>
+											)}
 										/>
 										<button
 											type="button"
@@ -217,7 +284,7 @@ export const SignUpForm = () => {
 													!showConfirmPassword,
 												)
 											}
-											className={`absolute top-1/2 right-4 z-30 ${!confirmPasswordError ? "-translate-y-2" : "-translate-y-5"} cursor-pointer`}
+											className={`absolute top-1/2 right-4 z-30 ${!errors.confirmPassword ? "-translate-y-2" : "-translate-y-5"} cursor-pointer`}
 											aria-label={
 												showConfirmPassword
 													? "Hide password"
