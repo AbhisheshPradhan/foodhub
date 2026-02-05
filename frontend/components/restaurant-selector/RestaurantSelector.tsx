@@ -12,7 +12,7 @@ export function RestaurantSelector() {
 	}
 
 	return (
-		<div className="flex flex-col w-60">
+		<div className="hidden md:flex flex-col w-60">
 			<div className="font-bold">{selectedRestaurant?.name}</div>
 			<div className="font-light text-theme-xs">
 				{selectedRestaurant?.address}

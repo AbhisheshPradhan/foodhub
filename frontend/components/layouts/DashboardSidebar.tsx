@@ -34,7 +34,7 @@ export const DashboardSidebar = () => {
 	const pathname = usePathname();
 
 	return (
-		<aside className="w-56 shrink-0 border-r border-gray-200 dark:border-gray-800">
+		<aside className="hidden lg:flex w-56 shrink-0 border-r border-gray-200 dark:border-gray-800">
 			<nav className="space-y-1 p-4">
 				{sidebarItems.map((item) => {
 					const isActive = pathname === `/dashboard/${item.href}`;
