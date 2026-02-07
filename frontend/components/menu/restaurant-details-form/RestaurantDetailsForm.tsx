@@ -27,7 +27,6 @@ export const RestaurantDetailsForm = () => {
 		isLoading,
 		draftRestaurant,
 		updateDraftRestaurantDetails,
-		updateSelectedRestaurantDetails,
 		resetDraftRestaurantState,
 	} = useRestaurants();
 
@@ -88,10 +87,6 @@ export const RestaurantDetailsForm = () => {
 			});
 
 			setTimeout(() => {
-				updateSelectedRestaurantDetails({
-					...draftRestaurant!,
-					...data,
-				});
 				setIsSaving(false);
 			}, 2000);
 		} catch (err) {

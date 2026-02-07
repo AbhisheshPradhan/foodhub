@@ -112,7 +112,7 @@ export const MenuDesignerToolbar: React.FC<MenuDesignerToolbarProps> = ({
 						variant="outline"
 						startIcon={<RotateCcw size={16} />}
 						onClick={onResetOrder}
-						disabled={isSaving}
+						disabled={isSaving || saveSuccess}
 					>
 						Reset Order
 					</Button>
@@ -120,17 +120,23 @@ export const MenuDesignerToolbar: React.FC<MenuDesignerToolbarProps> = ({
 						size="xs"
 						variant="primary"
 						className={
-							saveSuccess
-								? "bg-green-500 hover:bg-green-500"
-								: ""
+							saveSuccess ? "bg-green-500 hover:bg-green-500" : ""
 						}
 						startIcon={
-							saveSuccess ? <Check size={16} /> : <Save size={16} />
+							saveSuccess ? (
+								<Check size={16} />
+							) : (
+								<Save size={16} />
+							)
 						}
 						onClick={onSaveOrder}
 						disabled={isSaving || saveSuccess}
 					>
-						{isSaving ? "Saving..." : saveSuccess ? "Saved" : "Save Order"}
+						{isSaving
+							? "Saving..."
+							: saveSuccess
+								? "Saved"
+								: "Save Order"}
 					</Button>
 				</div>
 			)}

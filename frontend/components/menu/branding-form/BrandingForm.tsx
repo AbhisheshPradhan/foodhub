@@ -15,7 +15,6 @@ export const BrandingForm = () => {
 		isLoading,
 		draftRestaurant,
 		updateDraftRestaurantDetails,
-		updateSelectedRestaurantDetails,
 		resetDraftRestaurantState,
 	} = useRestaurants();
 	const [isSaving, setIsSaving] = useState(false);
@@ -65,7 +64,6 @@ export const BrandingForm = () => {
 			console.log("logoFile", logoFile);
 			console.log("coverFile", coverFile);
 
-			updateSelectedRestaurantDetails(draftRestaurant!);
 			setIsSaving(false);
 		}, 2000);
 	};

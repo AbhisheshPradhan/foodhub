@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { AppNav } from "@/components/layouts/AppNav";
+import { QueryProvider } from "@/providers/QueryProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RestaurantProvider } from "@/contexts/RestaurantContext";
 import { QrCodeConfigProvider } from "@/contexts/QrCodeConfigContext";
@@ -31,23 +32,25 @@ export default async function DashboardLayout({
 
 	return (
 		<>
-			<AuthProvider>
-				<GoogleMapsWrapper>
-					<RestaurantProvider>
-						<AppNav />
-						<div className="flex max-w-7xl h-[calc(100vh-85px)] mx-auto">
-							<DashboardSidebar />
-							<PathTracker href="/dashboard" />
-							<QrCodeConfigProvider>
-								<main className="min-w-0 flex-1 overflow-y-hidden p-6 max-w-3xl w-full">
-									{children}
-								</main>
-								<DashboardPreviewSection />
-							</QrCodeConfigProvider>
-						</div>
-					</RestaurantProvider>
-				</GoogleMapsWrapper>
-			</AuthProvider>
+			<QueryProvider>
+				<AuthProvider>
+					<GoogleMapsWrapper>
+						<RestaurantProvider>
+							<AppNav />
+							<div className="flex max-w-7xl h-[calc(100vh-85px)] mx-auto">
+								<DashboardSidebar />
+								<PathTracker href="/dashboard" />
+								<QrCodeConfigProvider>
+									<main className="min-w-0 flex-1 overflow-y-hidden p-6 max-w-3xl w-full">
+										{children}
+									</main>
+									<DashboardPreviewSection />
+								</QrCodeConfigProvider>
+							</div>
+						</RestaurantProvider>
+					</GoogleMapsWrapper>
+				</AuthProvider>
+			</QueryProvider>
 		</>
 	);
 }

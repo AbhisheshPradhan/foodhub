@@ -3,29 +3,29 @@
 import {
 	createContext,
 	useContext,
-	useEffect,
 	useState,
 	ReactNode,
 	useCallback,
+	useEffect,
+	useMemo,
 	useRef,
 } from "react";
 
-import { getUserRestaurants } from "@/services/restaurants";
+import { useRestaurantsQuery } from "@/hooks/useRestaurantsQuery";
 import { useAuth } from "./AuthContext";
 import { MenuCategory, Restaurant } from "@/types";
 
 interface RestaurantContextType {
 	isLoading: boolean;
 	restaurants: Restaurant[];
-	refreshRestaurants: () => Promise<void>;
-	draftRestaurant: Restaurant | null;
+	refetchRestaurants: () => void;
 	selectedRestaurant: Restaurant | null;
 	setSelectedRestaurant: (restaurant: Restaurant) => void;
 	designerActiveCategoryId: number | null;
 	setDesignerActiveCategoryId: (categoryId: number) => void;
+	draftRestaurant: Restaurant | null;
 	updateDraftRestaurantDetails: (attr: string, value: string) => void;
 	updateDraftCategories: (categories: MenuCategory[]) => void;
-	updateSelectedRestaurantDetails: (restaurantDetails: Restaurant) => void;
 	resetDraftRestaurantState: () => void;
 }
 
@@ -34,38 +34,95 @@ const RestaurantContext = createContext<RestaurantContextType | undefined>(
 );
 
 export function RestaurantProvider({ children }: { children: ReactNode }) {
-	const [isLoading, setIsLoading] = useState(true);
 	const { user, isLoading: authLoading } = useAuth();
-	const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-	const [selectedRestaurant, setSelectedRestaurantState] =
-		useState<Restaurant | null>(null);
-	const [draftRestaurant, setDraftRestaurantState] =
-		useState<Restaurant | null>(null);
+
+	const {
+		data: restaurants = [],
+		isLoading: queryLoading,
+		refetch,
+	} = useRestaurantsQuery();
+
+	const [selectedRestaurantId, setSelectedRestaurantId] = useState<
+		number | null
+	>(() => {
+		if (typeof window !== "undefined") {
+			const stored = localStorage.getItem("selectedRestaurantId");
+			return stored ? Number(stored) : null;
+		}
+		return null;
+	});
+
 	const [designerActiveCategoryId, setDesignerActiveCategoryIdState] =
 		useState<number | null>(null);
 
-	const selectedRestaurantRef = useRef<Restaurant | null>(null);
-	selectedRestaurantRef.current = selectedRestaurant;
+	const [draftRestaurantId, setDraftRestaurantId] = useState<number | null>(
+		null,
+	);
+	const [draftRestaurant, setDraftRestaurant] = useState<Restaurant | null>(
+		null,
+	);
+	const draftRestaurantRef = useRef<Restaurant | null>(null);
+	useEffect(() => {
+		draftRestaurantRef.current = draftRestaurant;
+	}, [draftRestaurant]);
 
-	const updateSelectedRestaurantDetails = useCallback(
-		(restaurantDetails: Restaurant) => {
-			selectedRestaurantRef.current = restaurantDetails;
-			setSelectedRestaurantState(restaurantDetails);
+	const selectedRestaurant = useMemo(() => {
+		if (!restaurants.length) return null;
+
+		if (selectedRestaurantId) {
+			const found = restaurants.find(
+				(r) => r.id === selectedRestaurantId,
+			);
+			if (found) return found;
+		}
+
+		return restaurants[0] ?? null;
+	}, [restaurants, selectedRestaurantId]);
+
+	const needsDraftSync =
+		selectedRestaurant && selectedRestaurant.id !== draftRestaurantId;
+
+	if (needsDraftSync) {
+		setDraftRestaurantId(selectedRestaurant.id);
+		setDraftRestaurant(selectedRestaurant);
+
+		if (selectedRestaurant.id !== selectedRestaurantId) {
+			setSelectedRestaurantId(selectedRestaurant.id);
+			localStorage.setItem(
+				"selectedRestaurantId",
+				selectedRestaurant.id.toString(),
+			);
+		}
+	}
+
+	const isLoading = authLoading || queryLoading;
+
+	const setSelectedRestaurant = useCallback((restaurant: Restaurant) => {
+		setSelectedRestaurantId(restaurant.id);
+		setDraftRestaurantId(restaurant.id);
+		setDraftRestaurant(restaurant);
+		localStorage.setItem("selectedRestaurantId", restaurant.id.toString());
+	}, []);
+
+	const setDesignerActiveCategoryId = useCallback((categoryId: number) => {
+		setDesignerActiveCategoryIdState(categoryId);
+	}, []);
+
+	const updateDraftRestaurantDetails = useCallback(
+		(attr: string, value: string) => {
+			setDraftRestaurant((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					[attr]: value,
+				};
+			});
 		},
 		[],
 	);
 
-	const updateDraftRestaurantDetails = (attr: string, value: string) => {
-		setDraftRestaurantState((prev) => {
-			return {
-				...prev,
-				[attr]: value,
-			};
-		});
-	};
-
 	const updateDraftCategories = useCallback((categories: MenuCategory[]) => {
-		setDraftRestaurantState((prev) => {
+		setDraftRestaurant((prev) => {
 			if (!prev) return prev;
 			return {
 				...prev,
@@ -75,88 +132,48 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 	}, []);
 
 	const resetDraftRestaurantState = useCallback(() => {
-		setDraftRestaurantState(selectedRestaurantRef.current);
-	}, []);
-
-	// Change selected restaurant
-	const setSelectedRestaurant = (restaurant: Restaurant) => {
-		setSelectedRestaurantState(restaurant);
-		setDraftRestaurantState(restaurant);
-		localStorage.setItem("selectedRestaurantId", restaurant.id.toString());
-	};
-
-	const setDesignerActiveCategoryId = (categoryId: number) => {
-		setDesignerActiveCategoryIdState(categoryId);
-	};
-
-	const refreshRestaurants = async () => {
-		if (!user) {
-			setRestaurants([]);
-			setSelectedRestaurantState(null);
-			setIsLoading(false);
-			return;
+		if (selectedRestaurant) {
+			setDraftRestaurant(selectedRestaurant);
 		}
+	}, [selectedRestaurant]);
 
-		setIsLoading(true);
-		try {
-			const res = await getUserRestaurants();
-			const fetchedRestaurants: Restaurant[] = res.data ?? [];
-			setRestaurants(fetchedRestaurants);
-
-			const storedId = localStorage.getItem("selectedRestaurantId");
-			let initialSelected: Restaurant | null = null;
-
-			if (storedId) {
-				initialSelected =
-					fetchedRestaurants.find((r) => r.id === Number(storedId)) ??
-					null;
-			}
-
-			if (!initialSelected && fetchedRestaurants.length > 0) {
-				initialSelected = fetchedRestaurants[0];
-			}
-
-			setSelectedRestaurantState(initialSelected!);
-			setDraftRestaurantState(initialSelected!);
-			if (initialSelected) {
-				localStorage.setItem(
-					"selectedRestaurantId",
-					initialSelected.id.toString(),
-				);
-			}
-		} catch (err) {
-			console.error("Failed to fetch restaurants:", err);
-			setRestaurants([]);
-			setSelectedRestaurantState(null);
-			setDraftRestaurantState(null);
-		} finally {
-			setIsLoading(false);
+	const refetchRestaurants = useCallback(() => {
+		if (user) {
+			refetch();
 		}
-	};
+	}, [user, refetch]);
 
-	useEffect(() => {
-		if (!authLoading) {
-			refreshRestaurants();
-		}
-	}, [user, authLoading]);
+	const value = useMemo(
+		() => ({
+			isLoading,
+			restaurants,
+			refetchRestaurants,
+			selectedRestaurant,
+			setSelectedRestaurant,
+			designerActiveCategoryId,
+			setDesignerActiveCategoryId,
+			draftRestaurant,
+			updateDraftRestaurantDetails,
+			updateDraftCategories,
+			resetDraftRestaurantState,
+		}),
+		[
+			isLoading,
+			restaurants,
+			refetchRestaurants,
+			selectedRestaurant,
+			setSelectedRestaurant,
+			designerActiveCategoryId,
+			setDesignerActiveCategoryId,
+			draftRestaurant,
+			updateDraftRestaurantDetails,
+			updateDraftCategories,
+			resetDraftRestaurantState,
+		],
+	);
 
 	return (
-		<RestaurantContext.Provider
-			value={{
-				restaurants,
-				draftRestaurant,
-				selectedRestaurant,
-				isLoading,
-				refreshRestaurants,
-				setSelectedRestaurant,
-				designerActiveCategoryId,
-				setDesignerActiveCategoryId,
-				updateDraftRestaurantDetails,
-				updateDraftCategories,
-				updateSelectedRestaurantDetails,
-				resetDraftRestaurantState,
-			}}
-		>
+		<RestaurantContext.Provider value={value}>
 			{children}
 		</RestaurantContext.Provider>
 	);
