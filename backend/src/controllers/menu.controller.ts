@@ -12,7 +12,7 @@ interface MenuItemOrder {
 interface CategoryOrder {
 	id: number;
 	displayOrder: number;
-	items: MenuItemOrder[];
+	menuItems: MenuItemOrder[];
 }
 
 export const updateMenuOrder = async (req: AuthRequest, res: Response) => {
@@ -32,11 +32,13 @@ export const updateMenuOrder = async (req: AuthRequest, res: Response) => {
 			.json(responseWrapper.error(ErrorMessages.UNAUTHORIZED));
 	}
 	try {
-		const userRestaurant = await prisma.userRestaurant.findUnique({
-			where: {
-				userId_restaurantId: {
-					userId: req.user.id,
-					restaurantId,
+		const userRestaurant = await prisma.user.findUnique({
+			where: { cognitoSub },
+			include: {
+				userRestaurants: {
+					where: {
+						restaurantId,
+					},
 				},
 			},
 		});
@@ -47,11 +49,11 @@ export const updateMenuOrder = async (req: AuthRequest, res: Response) => {
 				.json(responseWrapper.error(ErrorMessages.FORBIDDEN));
 		}
 
-		if (!["editor", "admin"].includes(userRestaurant.role)) {
-			return res
-				.status(403)
-				.json(responseWrapper.error(ErrorMessages.FORBIDDEN));
-		}
+		// if (!["editor", "admin", "owner"].includes(userRestaurant.role)) {
+		// 	return res
+		// 		.status(403)
+		// 		.json(responseWrapper.error(ErrorMessages.FORBIDDEN));
+		// }
 
 		await prisma.$transaction(async (tx) => {
 			for (const category of categories) {
@@ -65,7 +67,7 @@ export const updateMenuOrder = async (req: AuthRequest, res: Response) => {
 					},
 				});
 
-				for (const item of category.items) {
+				for (const item of category.menuItems) {
 					await tx.menuItem.updateMany({
 						where: {
 							id: item.id,

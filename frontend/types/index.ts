@@ -115,5 +115,5 @@ export interface MenuItemOrder {
 export interface CategoryOrder {
 	id: number;
 	displayOrder: number;
-	items: MenuItemOrder[];
+	menuItems: MenuItemOrder[];
 }

@@ -26,8 +26,14 @@ import { MenuItemOverlay } from "./MenuItemOverlay";
 import { CategoryOverlay } from "./CategoryOverlay";
 import { SortableCategory } from "./SortableCategory";
 import { AddCategoryModal } from "./AddCategoryModal";
-import { EditableMenuItem, MenuCategory, MenuItem } from "@/types";
+import {
+	CategoryOrder,
+	EditableMenuItem,
+	MenuCategory,
+	MenuItem,
+} from "@/types";
 import { MenuItemFormModal } from "./add-menu-item/MenuItemFormModal";
+import { updateMenuOrder } from "@/services/menu";
 
 export function MenuDnD() {
 	const {
@@ -105,21 +111,39 @@ export function MenuDnD() {
 		[categories],
 	);
 
-	const handleSaveOrder = useCallback(async () => {
+	const handleSaveOrder = async () => {
 		setIsSaving(true);
 
-		try {
-			// TODO: call API to persist the new display order
-			console.log("Saving order…", categories);
+		if (!draftRestaurant?.id) {
+			return;
+		}
 
-			setTimeout(() => {
-				setHasOrderChanges(false);
-				setIsSaving(false);
-			}, 500);
+		try {
+			const categoryOrderPayload: CategoryOrder[] = categories.map(
+				(cat, index) => {
+					return {
+						id: cat.id,
+						displayOrder: index + 1,
+						menuItems: cat.menuItems.map((item, index) => {
+							return {
+								id: item.id!,
+								displayOrder: index + 1,
+							};
+						}),
+					};
+				},
+			);
+			const response = await updateMenuOrder(draftRestaurant?.id, {
+				categories: categoryOrderPayload,
+			});
+			console.log("handleSaveOrder response", response);
+			setIsSaving(false);
+			setHasOrderChanges(false);
 		} catch (err) {
 			console.log(err);
+			setIsSaving(false);
 		}
-	}, [categories]);
+	};
 
 	const allCollapsed = openCategories.size === 0;
 
