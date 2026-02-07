@@ -71,8 +71,10 @@ export const MenuItemFormModal = ({
 	}, [activeTab]);
 
 	useEffect(() => {
-		updateIndicator();
-	}, [updateIndicator]);
+		if (isOpen) {
+			updateIndicator();
+		}
+	}, [isOpen, updateIndicator]);
 
 	if (!isOpen) return null;
 
