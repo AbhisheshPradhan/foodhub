@@ -39,6 +39,7 @@ export function MenuDnD() {
 	const {
 		isLoading,
 		draftRestaurant,
+		selectedRestaurant,
 		setDesignerActiveCategoryId,
 		updateDraftCategories,
 	} = useRestaurants();
@@ -57,6 +58,7 @@ export function MenuDnD() {
 
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
+	const [saveSuccess, setSaveSuccess] = useState(false);
 	const [hasOrderChanges, setHasOrderChanges] = useState(false);
 	const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 	const [isAddMenuItemOpen, setIsAddMenuItemOpen] = useState(false);
@@ -139,11 +141,21 @@ export function MenuDnD() {
 			console.log("handleSaveOrder response", response);
 			setIsSaving(false);
 			setHasOrderChanges(false);
+			setSaveSuccess(true);
+			setTimeout(() => setSaveSuccess(false), 2000);
 		} catch (err) {
 			console.log(err);
 			setIsSaving(false);
 		}
 	};
+
+	const handleResetOrder = useCallback(() => {
+		if (selectedRestaurant?.categories) {
+			setCategories(selectedRestaurant.categories);
+			updateDraftCategories(selectedRestaurant.categories);
+			setHasOrderChanges(false);
+		}
+	}, [selectedRestaurant, updateDraftCategories]);
 
 	const allCollapsed = openCategories.size === 0;
 
@@ -357,11 +369,13 @@ export function MenuDnD() {
 		<div className="flex flex-col gap-4">
 			<MenuDesignerToolbar
 				onSaveOrder={handleSaveOrder}
+				onResetOrder={handleResetOrder}
 				onAddCategory={() => setIsAddCategoryOpen(true)}
 				onAddMenuItem={() => setIsAddMenuItemOpen(true)}
 				onToggleAll={handleToggleAll}
 				allCollapsed={allCollapsed}
 				isSaving={isSaving}
+				saveSuccess={saveSuccess}
 				hasOrderChanges={hasOrderChanges}
 			/>
 			<DndContext
