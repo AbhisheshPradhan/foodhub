@@ -111,7 +111,7 @@ export function MenuDnD() {
 			setTimeout(() => {
 				setHasOrderChanges(false);
 				setIsSaving(false);
-			}, 2000);
+			}, 500);
 		} catch (err) {
 			console.log(err);
 		}
@@ -134,12 +134,11 @@ export function MenuDnD() {
 				id: Date.now(),
 				name,
 				description,
-				displayOrder: categories.length,
 				menuItems: [],
 			};
 			setCategories((prev) => [...prev, newCategory]);
 		},
-		[categories.length],
+		[],
 	);
 
 	const handleAddMenuItem = useCallback((item: EditableMenuItem) => {

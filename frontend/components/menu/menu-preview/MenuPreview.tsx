@@ -393,19 +393,17 @@ export const MenuPreview: React.FC = () => {
 						onMouseLeave={handleMenuMouseUp}
 					>
 						<div className="py-2">
-							{filteredCategories
-								.sort((a, b) => a.displayOrder - b.displayOrder)
-								.map((category) => (
-									<div
-										key={category.id}
-										data-category-id={category.id}
-									>
-										<CategorySection
-											category={category}
-											onItemClick={handleItemClick}
-										/>
-									</div>
-								))}
+							{filteredCategories.map((category) => (
+								<div
+									key={category.id}
+									data-category-id={category.id}
+								>
+									<CategorySection
+										category={category}
+										onItemClick={handleItemClick}
+									/>
+								</div>
+							))}
 						</div>
 
 						<div className="border-t border-gray-200 px-4 py-4">

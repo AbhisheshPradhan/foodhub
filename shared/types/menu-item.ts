@@ -16,7 +16,6 @@ export interface MenuItem {
 	calories: number | null;
 	preparationTime: number | null; // in minutes
 	servings: string | null;
-	displayOrder: number;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -49,7 +48,6 @@ export interface Modifier {
 	priceAdjustment: number;
 	isAvailable: boolean;
 	modifierType: ModifierType;
-	displayOrder: number;
 	createdAt: Date;
 }
 

@@ -43,7 +43,6 @@ export interface MenuCategory {
 	id: number;
 	name: string;
 	description: string;
-	displayOrder: number;
 	menuItems: EditableMenuItem[];
 }
 

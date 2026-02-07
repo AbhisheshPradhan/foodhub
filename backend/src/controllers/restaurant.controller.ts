@@ -172,7 +172,6 @@ export const getUserRestaurants = async (req: AuthRequest, res: Response) => {
 				id: category.id,
 				name: category.name,
 				description: category.description,
-				displayOrder: category.displayOrder,
 				menuItems: category.menuItems.map((item) => ({
 					id: item.id,
 					categoryId: category.id,
