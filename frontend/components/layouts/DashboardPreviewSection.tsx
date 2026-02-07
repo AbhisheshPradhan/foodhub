@@ -10,7 +10,7 @@ export const DashboardPreviewSection = () => {
 	const isQrPage = segment === "qr";
 
 	return (
-		<aside className="shrink-0 border-l border-gray-200 p-6 content-center hidden md:block">
+		<aside className="shrink-0 border-l border-gray-200 p-6 hidden md:block">
 			{isQrPage ? <QrCodePreview /> : <MenuPreview />}
 		</aside>
 	);

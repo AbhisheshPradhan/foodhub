@@ -2,7 +2,8 @@
 
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronUp, Search, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronUp, Search, X, Share2, QrCode } from "lucide-react";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
 import { CategorySection } from "./CategorySection";
@@ -21,7 +22,9 @@ export const MenuPreview: React.FC = () => {
 	const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
 	const [isSearching, setIsSearching] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [copied, setCopied] = useState(false);
 	const searchInputRef = useRef<HTMLInputElement>(null);
+	const router = useRouter();
 
 	const isDragging = useRef(false);
 	const catDidDrag = useRef(false);
@@ -113,6 +116,14 @@ export const MenuPreview: React.FC = () => {
 		menuScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
 	}, []);
 
+	const handleShareUrl = useCallback(() => {
+		const menuUrl = `https://foodhub.com/menu/${draftRestaurant?.menuUrl || ""}`;
+		navigator.clipboard.writeText(menuUrl).then(() => {
+			setCopied(true);
+			setTimeout(() => setCopied(false), 2000);
+		});
+	}, [draftRestaurant?.menuUrl]);
+
 	const handleMenuMouseDown = useCallback((e: React.MouseEvent) => {
 		isProgrammaticScroll.current = false;
 		menuDragging.current = true;
@@ -167,6 +178,27 @@ export const MenuPreview: React.FC = () => {
 		activeCategoryId ?? filteredCategories?.[0]?.id ?? null;
 	return (
 		<div className="inline-flex flex-col items-center text-start">
+			<div className="mb-4 flex w-full items-center justify-between">
+				<h2 className="text-lg font-semibold text-gray-700">Preview</h2>
+				<div className="flex gap-2">
+					<button
+						onClick={handleShareUrl}
+						className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
+						title="Copy menu URL"
+					>
+						<Share2 size={14} />
+						{copied ? "Copied!" : "Share"}
+					</button>
+					<button
+						onClick={() => router.push("/dashboard/qr")}
+						className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
+						title="View QR Code"
+					>
+						<QrCode size={14} />
+						QR Code
+					</button>
+				</div>
+			</div>
 			<div className="relative h-180 w-85 rounded-[50px] border-[6px] border-gray-900 bg-gray-900 shadow-xl">
 				<div className="absolute -left-2 top-25 h-7.5 w-0.75 rounded-l-sm bg-gray-900" />
 				<div className="absolute -left-2 top-37 h-12.5 w-0.75 rounded-l-sm bg-gray-900" />

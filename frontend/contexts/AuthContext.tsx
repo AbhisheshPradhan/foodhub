@@ -37,6 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			setUser(userData?.data as User);
 		} catch {
 			setUser(null);
+
+			// TODO: no network, user is null, what to do? send to login page? but they might try to login.
+			// maybe tell them network issues or something.
 		} finally {
 			setIsLoading(false);
 		}

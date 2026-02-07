@@ -17,15 +17,20 @@ export const QrCodePreview = () => {
 	const { config, resetConfig } = useQrCodeConfig();
 	const { selectedRestaurant } = useRestaurants();
 
+	// TODO: reset on mount
+	// if no network, what to do for admin apps?
+	// i.e. cognito get user failed.
 	useEffect(() => {
 		return () => resetConfig();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
 	const [format, setFormat] = useState<ExportFormat>("pdf");
 	const [gridCount, setGridCount] = useState<GridCount>(1);
 	const [isDownloading, setIsDownloading] = useState(false);
 	const svgRef = useRef<SVGSVGElement>(null);
 
+	// TODO: menu url must exist
 	const menuUrl = selectedRestaurant
 		? `https://foodhub.com/menu/${selectedRestaurant.menuUrl}`
 		: "https://foodhub.com";
