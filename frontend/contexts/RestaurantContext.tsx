@@ -12,7 +12,7 @@ import {
 
 import { getUserRestaurants } from "@/services/restaurants";
 import { useAuth } from "./AuthContext";
-import { Restaurant } from "@/types";
+import { MenuCategory, Restaurant } from "@/types";
 
 interface RestaurantContextType {
 	isLoading: boolean;
@@ -24,6 +24,7 @@ interface RestaurantContextType {
 	designerActiveCategoryId: number | null;
 	setDesignerActiveCategoryId: (categoryId: number) => void;
 	updateDraftRestaurantDetails: (attr: string, value: string) => void;
+	updateDraftCategories: (categories: MenuCategory[]) => void;
 	updateSelectedRestaurantDetails: (restaurantDetails: Restaurant) => void;
 	resetDraftRestaurantState: () => void;
 }
@@ -62,6 +63,16 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 			};
 		});
 	};
+
+	const updateDraftCategories = useCallback((categories: MenuCategory[]) => {
+		setDraftRestaurantState((prev) => {
+			if (!prev) return prev;
+			return {
+				...prev,
+				categories,
+			};
+		});
+	}, []);
 
 	const resetDraftRestaurantState = useCallback(() => {
 		setDraftRestaurantState(selectedRestaurantRef.current);
@@ -141,6 +152,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 				designerActiveCategoryId,
 				setDesignerActiveCategoryId,
 				updateDraftRestaurantDetails,
+				updateDraftCategories,
 				updateSelectedRestaurantDetails,
 				resetDraftRestaurantState,
 			}}

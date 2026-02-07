@@ -106,3 +106,14 @@ export interface Restaurant {
 	categories?: MenuCategory[];
 	qrCodeConfig?: QrCodeConfig;
 }
+
+export interface MenuItemOrder {
+	id: number;
+	displayOrder: number;
+}
+
+export interface CategoryOrder {
+	id: number;
+	displayOrder: number;
+	items: MenuItemOrder[];
+}

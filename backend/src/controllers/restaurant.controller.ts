@@ -245,8 +245,6 @@ export const checkSlug = async (req: Request, res: Response) => {
 
 export const restaurantController = {
 	createRestaurant,
-	// getRestaurantById,
-	// getMenu,
 	getUserRestaurants,
 	checkSlug,
 };

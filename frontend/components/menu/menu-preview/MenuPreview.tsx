@@ -156,6 +156,7 @@ export const MenuPreview: React.FC = () => {
 	}, []);
 
 	const filteredCategories: MenuCategory[] = useMemo(() => {
+		console.log("filteredCategories draftRestaurant", draftRestaurant);
 		if (!draftRestaurant) return [];
 		const query = searchQuery.trim().toLowerCase();
 		if (!query) return draftRestaurant.categories;

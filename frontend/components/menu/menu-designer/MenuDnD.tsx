@@ -30,16 +30,20 @@ import { EditableMenuItem, MenuCategory, MenuItem } from "@/types";
 import { MenuItemFormModal } from "./add-menu-item/MenuItemFormModal";
 
 export function MenuDnD() {
-	const { isLoading, selectedRestaurant, setDesignerActiveCategoryId } =
-		useRestaurants();
+	const {
+		isLoading,
+		draftRestaurant,
+		setDesignerActiveCategoryId,
+		updateDraftCategories,
+	} = useRestaurants();
 
 	const [categories, setCategories] = useState<MenuCategory[]>([]);
 
 	useEffect(() => {
-		if (!isLoading && selectedRestaurant?.categories) {
-			setCategories(selectedRestaurant.categories);
+		if (!isLoading && draftRestaurant?.categories) {
+			setCategories(draftRestaurant.categories);
 		}
-	}, [isLoading, selectedRestaurant?.categories]);
+	}, [isLoading, draftRestaurant?.categories]);
 
 	const [openCategories, setOpenCategories] = useState<Set<number>>(
 		new Set(),
@@ -219,13 +223,14 @@ export function MenuDnD() {
 				const newDestItems = [...destCat.menuItems];
 				newDestItems.splice(destIndex, 0, item);
 
-				return prev.map((cat) => {
+				const newCategories = prev.map((cat) => {
 					if (cat.id === activeCategory.id)
 						return { ...cat, menuItems: newSourceItems };
 					if (cat.id === overCategory.id)
 						return { ...cat, menuItems: newDestItems };
 					return cat;
 				});
+				return newCategories;
 			});
 		},
 		[findCategoryByItemId, findCategory],
@@ -254,7 +259,9 @@ export function MenuDnD() {
 						(c) => `category-${c.id}` === overIdStr,
 					);
 					if (oldIndex === -1 || newIndex === -1) return prev;
-					return arrayMove(prev, oldIndex, newIndex);
+					const newCategories = arrayMove(prev, oldIndex, newIndex);
+					updateDraftCategories(newCategories);
+					return newCategories;
 				});
 				return;
 			}
@@ -267,8 +274,8 @@ export function MenuDnD() {
 				const overCat = findCategoryByItemId(overIdStr);
 
 				if (activeCat && overCat && activeCat.id === overCat.id) {
-					setCategories((prev) =>
-						prev.map((cat) => {
+					setCategories((prev) => {
+						const newCategories = prev.map((cat) => {
 							if (cat.id !== activeCat.id) return cat;
 							const oldIndex = cat.menuItems.findIndex(
 								(i) => `item-${i.id}` === activeIdStr,
@@ -285,12 +292,14 @@ export function MenuDnD() {
 									newIndex,
 								),
 							};
-						}),
-					);
+						});
+						updateDraftCategories(newCategories);
+						return newCategories;
+					});
 				}
 			}
 		},
-		[findCategoryByItemId],
+		[findCategoryByItemId, updateDraftCategories],
 	);
 
 	if (isLoading) {
@@ -299,7 +308,7 @@ export function MenuDnD() {
 		);
 	}
 
-	if (!selectedRestaurant) {
+	if (!draftRestaurant) {
 		return (
 			<p className="py-8 text-center text-sm text-gray-500">
 				Select a restaurant to manage the menu.
