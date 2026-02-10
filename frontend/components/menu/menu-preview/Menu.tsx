@@ -327,10 +327,6 @@ export const Menu: React.FC<MenuProps> = ({ menuDetails }) => {
 				)}
 			</div>
 
-			<div className="flex shrink-0 justify-center pb-2 pt-1">
-				<div className="h-1 w-30 rounded-full bg-gray-900" />
-			</div>
-
 			{selectedItem && (
 				<MenuItemDetail
 					item={selectedItem}
