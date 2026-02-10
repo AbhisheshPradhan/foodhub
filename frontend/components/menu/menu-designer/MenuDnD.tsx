@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
 	DndContext,
 	DragOverlay,
@@ -44,13 +44,10 @@ export function MenuDnD() {
 		updateDraftCategories,
 	} = useRestaurants();
 
-	const [categories, setCategories] = useState<MenuCategory[]>([]);
-
-	useEffect(() => {
-		if (!isLoading && draftRestaurant?.categories) {
-			setCategories(draftRestaurant.categories);
-		}
-	}, [isLoading, draftRestaurant?.categories]);
+	const categories = useMemo(
+		() => draftRestaurant?.categories ?? [],
+		[draftRestaurant?.categories],
+	);
 
 	const [openCategories, setOpenCategories] = useState<Set<number>>(
 		new Set(),
@@ -150,7 +147,6 @@ export function MenuDnD() {
 
 	const handleResetOrder = useCallback(() => {
 		if (selectedRestaurant?.categories) {
-			setCategories(selectedRestaurant.categories);
 			updateDraftCategories(selectedRestaurant.categories);
 			setHasOrderChanges(false);
 		}
@@ -174,23 +170,35 @@ export function MenuDnD() {
 				description,
 				menuItems: [],
 			};
-			setCategories((prev) => [...prev, newCategory]);
+			updateDraftCategories([...categories, newCategory]);
 		},
-		[],
+		[categories, updateDraftCategories],
 	);
 
-	const handleAddMenuItem = useCallback((item: EditableMenuItem) => {
-		setCategories((prev) =>
-			prev.map((cat) => {
-				if (cat.id !== item.categoryId) return cat;
+	const handleAddMenuItem = useCallback(
+		async (item: EditableMenuItem) => {
+			try {
+				// TODO: Replace with actual API call
+				const createdItem: MenuItem = await Promise.resolve({
+					...item,
+					id: item.id ?? Date.now(),
+					categoryId: item.categoryId!,
+				});
 
-				return {
-					...cat,
-					menuItems: [...cat.menuItems, item],
-				};
-			}),
-		);
-	}, []);
+				const newCategories = categories.map((cat) => {
+					if (cat.id !== createdItem.categoryId) return cat;
+					return {
+						...cat,
+						menuItems: [...cat.menuItems, createdItem],
+					};
+				});
+				updateDraftCategories(newCategories);
+			} catch (error) {
+				console.error("Failed to create menu item:", error);
+			}
+		},
+		[categories, updateDraftCategories],
+	);
 
 	const handleDragStart = useCallback((event: DragStartEvent) => {
 		setActiveId(String(event.active.id));
@@ -226,47 +234,43 @@ export function MenuDnD() {
 				return next;
 			});
 
-			setCategories((prev) => {
-				const activeNumericId = Number(
-					activeIdStr.replace("item-", ""),
+			const activeNumericId = Number(activeIdStr.replace("item-", ""));
+			const sourceCat = categories.find(
+				(c) => c.id === activeCategory.id,
+			)!;
+			const destCat = categories.find((c) => c.id === overCategory.id)!;
+
+			const item = sourceCat.menuItems.find(
+				(i) => i.id === activeNumericId,
+			);
+			if (!item) return;
+
+			const newSourceItems = sourceCat.menuItems.filter(
+				(i) => i.id !== activeNumericId,
+			);
+
+			let destIndex = destCat.menuItems.length;
+			if (overIdStr.startsWith("item-")) {
+				const overNumericId = Number(overIdStr.replace("item-", ""));
+				const idx = destCat.menuItems.findIndex(
+					(i) => i.id === overNumericId,
 				);
-				const sourceCat = prev.find((c) => c.id === activeCategory.id)!;
-				const destCat = prev.find((c) => c.id === overCategory.id)!;
+				if (idx !== -1) destIndex = idx;
+			}
 
-				const item = sourceCat.menuItems.find(
-					(i) => i.id === activeNumericId,
-				);
-				if (!item) return prev;
+			const newDestItems = [...destCat.menuItems];
+			newDestItems.splice(destIndex, 0, item);
 
-				const newSourceItems = sourceCat.menuItems.filter(
-					(i) => i.id !== activeNumericId,
-				);
-
-				let destIndex = destCat.menuItems.length;
-				if (overIdStr.startsWith("item-")) {
-					const overNumericId = Number(
-						overIdStr.replace("item-", ""),
-					);
-					const idx = destCat.menuItems.findIndex(
-						(i) => i.id === overNumericId,
-					);
-					if (idx !== -1) destIndex = idx;
-				}
-
-				const newDestItems = [...destCat.menuItems];
-				newDestItems.splice(destIndex, 0, item);
-
-				const newCategories = prev.map((cat) => {
-					if (cat.id === activeCategory.id)
-						return { ...cat, menuItems: newSourceItems };
-					if (cat.id === overCategory.id)
-						return { ...cat, menuItems: newDestItems };
-					return cat;
-				});
-				return newCategories;
+			const newCategories = categories.map((cat) => {
+				if (cat.id === activeCategory.id)
+					return { ...cat, menuItems: newSourceItems };
+				if (cat.id === overCategory.id)
+					return { ...cat, menuItems: newDestItems };
+				return cat;
 			});
+			updateDraftCategories(newCategories);
 		},
-		[findCategoryByItemId, findCategory],
+		[categories, findCategoryByItemId, findCategory, updateDraftCategories],
 	);
 
 	const handleDragEnd = useCallback(
@@ -284,18 +288,15 @@ export function MenuDnD() {
 				activeIdStr.startsWith("category-") &&
 				overIdStr.startsWith("category-")
 			) {
-				setCategories((prev) => {
-					const oldIndex = prev.findIndex(
-						(c) => `category-${c.id}` === activeIdStr,
-					);
-					const newIndex = prev.findIndex(
-						(c) => `category-${c.id}` === overIdStr,
-					);
-					if (oldIndex === -1 || newIndex === -1) return prev;
-					const newCategories = arrayMove(prev, oldIndex, newIndex);
-					updateDraftCategories(newCategories);
-					return newCategories;
-				});
+				const oldIndex = categories.findIndex(
+					(c) => `category-${c.id}` === activeIdStr,
+				);
+				const newIndex = categories.findIndex(
+					(c) => `category-${c.id}` === overIdStr,
+				);
+				if (oldIndex === -1 || newIndex === -1) return;
+				const newCategories = arrayMove(categories, oldIndex, newIndex);
+				updateDraftCategories(newCategories);
 				return;
 			}
 
@@ -307,32 +308,29 @@ export function MenuDnD() {
 				const overCat = findCategoryByItemId(overIdStr);
 
 				if (activeCat && overCat && activeCat.id === overCat.id) {
-					setCategories((prev) => {
-						const newCategories = prev.map((cat) => {
-							if (cat.id !== activeCat.id) return cat;
-							const oldIndex = cat.menuItems.findIndex(
-								(i) => `item-${i.id}` === activeIdStr,
-							);
-							const newIndex = cat.menuItems.findIndex(
-								(i) => `item-${i.id}` === overIdStr,
-							);
-							if (oldIndex === -1 || newIndex === -1) return cat;
-							return {
-								...cat,
-								menuItems: arrayMove(
-									cat.menuItems,
-									oldIndex,
-									newIndex,
-								),
-							};
-						});
-						updateDraftCategories(newCategories);
-						return newCategories;
+					const newCategories = categories.map((cat) => {
+						if (cat.id !== activeCat.id) return cat;
+						const oldIndex = cat.menuItems.findIndex(
+							(i) => `item-${i.id}` === activeIdStr,
+						);
+						const newIndex = cat.menuItems.findIndex(
+							(i) => `item-${i.id}` === overIdStr,
+						);
+						if (oldIndex === -1 || newIndex === -1) return cat;
+						return {
+							...cat,
+							menuItems: arrayMove(
+								cat.menuItems,
+								oldIndex,
+								newIndex,
+							),
+						};
 					});
+					updateDraftCategories(newCategories);
 				}
 			}
 		},
-		[findCategoryByItemId, updateDraftCategories],
+		[categories, findCategoryByItemId, updateDraftCategories],
 	);
 
 	if (isLoading) {
