@@ -5,6 +5,7 @@ import { Save } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 
+import { useToast } from "@/contexts/ToastContext";
 import { useRestaurants } from "@/contexts/RestaurantContext";
 import { Label } from "@/components/form/Label";
 import { ImageUpload } from "@/components/form/input/ImageUpload";
@@ -29,6 +30,8 @@ export const BrandingForm = () => {
 		resetDraftRestaurantState,
 	} = useRestaurants();
 	const queryClient = useQueryClient();
+	const { addToast } = useToast();
+
 	const [isSaving, setIsSaving] = useState(false);
 
 	const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -114,9 +117,15 @@ export const BrandingForm = () => {
 							? { ...old, ...updatedRestaurant.data }
 							: updatedRestaurant.data,
 				);
+				addToast(
+					"Restaurant details updated",
+					"success",
+					"save-restaurant",
+				);
 			}
 		} catch (err) {
 			console.error("error saving branding", err);
+			addToast("Something went wrong", "error");
 		} finally {
 			setIsSaving(false);
 		}

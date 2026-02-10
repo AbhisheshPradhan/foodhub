@@ -23,6 +23,7 @@ import {
 	restaurantsQueryKey,
 } from "@/hooks/useRestaurantsQuery";
 import { Restaurant } from "@/types";
+import { useToast } from "@/contexts/ToastContext";
 
 interface PreferencesFormData {
 	menuUrl: string;
@@ -42,6 +43,7 @@ export const PreferencesForm = () => {
 		resetDraftRestaurantState,
 	} = useRestaurants();
 	const queryClient = useQueryClient();
+	const { addToast } = useToast();
 
 	const [isSaving, setIsSaving] = useState(false);
 	const [menuUrlHint, setMenuUrlHint] = useState("");
@@ -118,9 +120,15 @@ export const PreferencesForm = () => {
 							? { ...old, ...updatedRestaurant.data }
 							: updatedRestaurant.data,
 				);
+				addToast(
+					"Restaurant details updated",
+					"success",
+					"save-restaurant",
+				);
 			}
 		} catch (err) {
 			console.error("error saving preferences", err);
+			addToast("Something went wrong", "error");
 		}
 
 		setIsSaving(false);

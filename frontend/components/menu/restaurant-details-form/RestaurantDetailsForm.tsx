@@ -10,6 +10,7 @@ import {
 	restaurantsQueryKey,
 	restaurantQueryKey,
 } from "@/hooks/useRestaurantsQuery";
+import { useToast } from "@/contexts/ToastContext";
 import { Restaurant } from "@/types";
 import { useRestaurants } from "@/contexts/RestaurantContext";
 import { Label } from "@/components/form/Label";
@@ -37,6 +38,7 @@ export const RestaurantDetailsForm = () => {
 		resetDraftRestaurantState,
 	} = useRestaurants();
 	const queryClient = useQueryClient();
+	const { addToast } = useToast();
 
 	const [isSaving, setIsSaving] = useState(false);
 
@@ -112,9 +114,15 @@ export const RestaurantDetailsForm = () => {
 							? { ...old, ...updatedRestaurant.data }
 							: updatedRestaurant.data,
 				);
+				addToast(
+					"Restaurant details updated",
+					"success",
+					"save-restaurant",
+				);
 			}
 		} catch (err) {
 			console.error("error saving restaurant details", err);
+			addToast("Something went wrong", "error");
 		} finally {
 			setIsSaving(false);
 		}
@@ -335,7 +343,7 @@ export const RestaurantDetailsForm = () => {
 								startIcon={<Save size={16} />}
 								size="sm"
 							>
-								{isSaving ? "Saving..." : "Save Changes"}
+								Save Changes
 							</Button>
 						</div>
 					</div>

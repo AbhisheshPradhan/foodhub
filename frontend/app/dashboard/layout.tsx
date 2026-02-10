@@ -7,6 +7,7 @@ import { QueryProvider } from "@/providers/QueryProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RestaurantProvider } from "@/contexts/RestaurantContext";
 import { QrCodeConfigProvider } from "@/contexts/QrCodeConfigContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 import { DashboardPreviewSection } from "@/components/layouts/DashboardPreviewSection";
 import { DashboardSidebar } from "@/components/layouts/DashboardSidebar";
 import { PathTracker } from "@/components/common/PathTracker";
@@ -36,17 +37,19 @@ export default async function DashboardLayout({
 				<AuthProvider>
 					<GoogleMapsWrapper>
 						<RestaurantProvider>
-							<AppNav />
-							<div className="flex max-w-7xl h-[calc(100vh-85px)] mx-auto">
-								<DashboardSidebar />
-								<PathTracker href="/dashboard" />
-								<QrCodeConfigProvider>
-									<main className="min-w-0 flex-1 overflow-y-hidden p-6 max-w-3xl w-full">
-										{children}
-									</main>
-									<DashboardPreviewSection />
-								</QrCodeConfigProvider>
-							</div>
+							<ToastProvider>
+								<AppNav />
+								<div className="flex max-w-7xl h-[calc(100vh-85px)] mx-auto">
+									<DashboardSidebar />
+									<PathTracker href="/dashboard" />
+									<QrCodeConfigProvider>
+										<main className="min-w-0 flex-1 overflow-y-hidden p-6 max-w-3xl w-full">
+											{children}
+										</main>
+										<DashboardPreviewSection />
+									</QrCodeConfigProvider>
+								</div>
+							</ToastProvider>
 						</RestaurantProvider>
 					</GoogleMapsWrapper>
 				</AuthProvider>
