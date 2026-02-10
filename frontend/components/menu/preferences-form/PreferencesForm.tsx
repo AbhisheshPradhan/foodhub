@@ -106,7 +106,6 @@ export const PreferencesForm = () => {
 				);
 			});
 
-			console.log("handleSave draftRestaurant", data);
 			// TODO: Add actual save logic here
 		} catch (err) {
 			console.error("error saving preferences", err);

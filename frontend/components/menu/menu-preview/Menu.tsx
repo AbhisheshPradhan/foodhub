@@ -161,7 +161,6 @@ export const Menu: React.FC<MenuProps> = ({ menuDetails }) => {
 			.filter((cat) => cat.menuItems.length > 0);
 	}, [searchQuery, menuDetails]);
 
-	// console.log("MenuPreview draftRestaurant", draftRestaurant);
 	if (!menuDetails) {
 		return null;
 	}
@@ -224,9 +223,9 @@ export const Menu: React.FC<MenuProps> = ({ menuDetails }) => {
 					onMouseLeave={handleMouseUp}
 				>
 					{filteredCategories &&
-						filteredCategories.map((cat) => (
+						filteredCategories.map((cat, index) => (
 							<span
-								key={cat.id}
+								key={`category-name-${index}-${cat.id}`}
 								data-pill-id={cat.id}
 								onClick={() => scrollToCategory(cat.id)}
 								className={`shrink-0 cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
@@ -254,13 +253,13 @@ export const Menu: React.FC<MenuProps> = ({ menuDetails }) => {
 			>
 				<div className="py-2">
 					{filteredCategories &&
-						filteredCategories.map((category) => (
+						filteredCategories.map((cat, index) => (
 							<div
-								key={category.id}
-								data-category-id={category.id}
+								key={`category-section-${index}-${cat.id}`}
+								data-category-id={cat.id}
 							>
 								<CategorySection
-									category={category}
+									category={cat}
 									onItemClick={handleItemClick}
 								/>
 							</div>
@@ -341,11 +340,11 @@ export const Menu: React.FC<MenuProps> = ({ menuDetails }) => {
 
 			{/* Slide-up animation */}
 			<style>{`
-						@keyframes menuSheetUp {
-							from { transform: translateY(100%); }
-							to { transform: translateY(0); }
-						}
-					`}</style>
+				@keyframes menuSheetUp {
+					from { transform: translateY(100%); }
+					to { transform: translateY(0); }
+				}
+			`}</style>
 		</>
 	);
 };

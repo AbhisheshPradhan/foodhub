@@ -23,9 +23,9 @@ export const CategorySection = ({
 				)}
 			</div>
 			<div>
-				{category.menuItems.map((item) => (
+				{category.menuItems.map((item, index) => (
 					<MenuItemCard
-						key={item.id}
+						key={`menuitem-${index}-${item.id}`}
 						item={item}
 						onTap={() => onItemClick(item)}
 					/>

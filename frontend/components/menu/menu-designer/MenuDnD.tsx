@@ -138,13 +138,12 @@ export function MenuDnD() {
 			const response = await updateMenuOrder(draftRestaurant?.id, {
 				categories: categoryOrderPayload,
 			});
-			console.log("handleSaveOrder response", response);
 			setIsSaving(false);
 			setHasOrderChanges(false);
 			setSaveSuccess(true);
 			setTimeout(() => setSaveSuccess(false), 2000);
 		} catch (err) {
-			console.log(err);
+			console.error(err);
 			setIsSaving(false);
 		}
 	};
@@ -169,7 +168,6 @@ export function MenuDnD() {
 
 	const handleAddCategory = useCallback(
 		(name: string, description: string) => {
-			console.log("Creating category:", { name, description });
 			const newCategory: MenuCategory = {
 				id: Date.now(),
 				name,
@@ -182,7 +180,6 @@ export function MenuDnD() {
 	);
 
 	const handleAddMenuItem = useCallback((item: EditableMenuItem) => {
-		console.log("handleAddMenuItem item", item);
 		setCategories((prev) =>
 			prev.map((cat) => {
 				if (cat.id !== item.categoryId) return cat;

@@ -43,7 +43,6 @@ export const QrCodeEditor = () => {
 		e.preventDefault();
 		setIsSaving(true);
 		setTimeout(() => {
-			console.log("handleSave qrConfig", { config, logoFile });
 			setIsSaving(false);
 		}, 2000);
 	};

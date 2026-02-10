@@ -31,7 +31,6 @@ export const PlaceAutocomplete: React.FC<PlaceAutocompleteProps> = ({
 				],
 			});
 			const address = place.formattedAddress;
-			console.log("handlePlaceSelect address", address);
 			onChange(address || "");
 		};
 

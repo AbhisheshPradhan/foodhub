@@ -38,9 +38,9 @@ export const MenuItemCard = ({
 									.map((a) => a.name)
 									.join(", ")}
 							>
-								{item.allergens.map((a) => (
+								{item.allergens.map((a, index) => (
 									<span
-										key={a.id}
+										key={`item-${item.id}-allergens-${index}-${a.id}`}
 										className="text-[10px]"
 									>
 										{a.icon}
@@ -56,7 +56,7 @@ export const MenuItemCard = ({
 						<div className="mt-1.5 flex flex-wrap gap-1">
 							{item?.modifiers?.map((mod, index) => (
 								<span
-									key={"modifier-" + index}
+									key={`item-${item.id}-modifiers-${index}-${mod.modifierType}`}
 									className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[9px] text-gray-600"
 								>
 									{mod?.name}

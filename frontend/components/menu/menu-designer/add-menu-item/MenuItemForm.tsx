@@ -27,7 +27,6 @@ export const MenuItemForm = ({
 	categories: MenuCategory[];
 	errors?: { name?: boolean; price?: boolean; category?: boolean };
 }) => {
-	console.log("MenuItemForm item", item);
 	const updateField = <K extends keyof EditableMenuItem>(
 		field: K,
 		value: EditableMenuItem[K],

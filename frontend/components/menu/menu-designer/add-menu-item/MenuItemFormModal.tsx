@@ -90,7 +90,6 @@ export const MenuItemFormModal = ({
 
 	const handleSave = () => {
 		onSave(editedItem);
-		console.log("editedItem", editedItem);
 		handleClose();
 	};
 

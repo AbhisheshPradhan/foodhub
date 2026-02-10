@@ -92,15 +92,13 @@ const getMenuDetailsBySlug = async (req: Request, res: Response) => {
 	try {
 		const { slug } = req.params;
 
-		console.log("getMenuDetailsBySlug slug:::", slug);
 		if (!slug || typeof slug !== "string") {
 			return res
 				.status(400)
 				.json(responseWrapper.error(ErrorMessages.INVALID_REQUEST));
 		}
 
-		// Find the user along with their restaurants, categories, and menu items
-		const restaurantDetails = await prisma.restaurant.findUnique({
+		const restaurant = await prisma.restaurant.findUnique({
 			where: { menuUrl: slug },
 			include: {
 				categories: {
@@ -122,6 +120,51 @@ const getMenuDetailsBySlug = async (req: Request, res: Response) => {
 				},
 			},
 		});
+
+		if (!restaurant) {
+			return res.status(404).json({ message: "Restaurant not found" });
+		}
+
+		const restaurantDetails = {
+			id: restaurant.id,
+			name: restaurant.name,
+			menuUrl: restaurant.menuUrl,
+			address: restaurant.address,
+			phone: restaurant.phone,
+			email: restaurant.email,
+			website: restaurant.website,
+			facebook: restaurant.facebook,
+			instagram: restaurant.instagram,
+			tiktok: restaurant.tiktok,
+			categories: restaurant.categories.map((category) => ({
+				id: category.id,
+				name: category.name,
+				description: category.description,
+				menuItems: category.menuItems.map((item) => ({
+					id: item.id,
+					categoryId: category.id,
+					name: item.name,
+					description: item.description,
+					price: item.price,
+					imageUrl: item.imageUrl,
+					isVegetarian: item.isVegetarian,
+					isVegan: item.isVegan,
+					isGlutenFree: item.isGlutenFree,
+					isSpicy: item.isSpicy,
+					spiceLevel: item.spiceLevel,
+					calories: item.calories,
+					preparationTime: item.preparationTime,
+					servings: item.servings,
+					allergens: item.allergens.map((a) => ({
+						id: a.allergen.id,
+						name: a.allergen.name,
+						description: a.allergen.description,
+						icon: a.allergen.icon,
+					})),
+					modifiers: item.modifiers ? item.modifiers : [],
+				})),
+			})),
+		};
 
 		return res.status(200).json(responseWrapper.success(restaurantDetails));
 	} catch (error) {

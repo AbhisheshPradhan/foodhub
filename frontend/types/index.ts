@@ -43,7 +43,7 @@ export interface MenuCategory {
 	id: number;
 	name: string;
 	description: string;
-	menuItems: EditableMenuItem[];
+	menuItems: MenuItem[];
 }
 
 export type EditableCategory = {

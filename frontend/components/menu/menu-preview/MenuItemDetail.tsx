@@ -63,9 +63,9 @@ export const MenuItemDetail = ({
 								Allergens
 							</h4>
 							<div className="mt-1.5 flex flex-wrap gap-1.5">
-								{item.allergens.map((a) => (
+								{item.allergens.map((a, index) => (
 									<span
-										key={a.id}
+										key={`item-${item.id}-allergens-${index}-${a.id}`}
 										className="flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[10px] text-red-700"
 									>
 										<span>{a.icon}</span>
@@ -76,24 +76,21 @@ export const MenuItemDetail = ({
 						</div>
 					)}
 
-					{item?.modifiers.length > 0 && (
+					{item?.modifiers?.length > 0 && (
 						<div className="mt-4">
 							<h4 className="text-[12px] font-semibold text-gray-900">
 								Options
 							</h4>
 							<div className="mt-1.5 flex flex-col gap-2">
-								{item?.modifiers.map((mod) => (
+								{item?.modifiers.map((mod, index) => (
 									<div
-										key={mod.id}
+										key={`item-${item.id}-modifiers-${index}-${mod.modifierType}`}
 										className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2"
 									>
 										<div>
 											<span className="text-[12px] font-medium text-gray-900">
 												{mod.name}
 											</span>
-											<p className="text-[10px] text-gray-500">
-												{mod.description}
-											</p>
 										</div>
 										{parseFloat(mod.priceAdjustment) >
 											0 && (

@@ -59,10 +59,6 @@ export const RestaurantDetailsForm = () => {
 
 	useEffect(() => {
 		if (draftRestaurant) {
-			console.log(
-				"RestaurantDetailsForm draftRestaurant",
-				draftRestaurant,
-			);
 			reset({
 				name: draftRestaurant.name || "",
 				email: draftRestaurant.email || "",

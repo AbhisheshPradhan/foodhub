@@ -3,7 +3,6 @@ import { api } from "@/api/client";
 export async function updateRestaurant(restaurantDetails) {
 	try {
 		const response = await api.post("/restaurants", restaurantDetails);
-		console.log("updateRestaurant response", response);
 		return response.data;
 	} catch (error) {
 		console.error("error creating restaurant", error);

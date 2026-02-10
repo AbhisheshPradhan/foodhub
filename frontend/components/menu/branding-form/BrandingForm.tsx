@@ -10,7 +10,6 @@ import { ColorPicker } from "@/components/form/input/ColorPicker";
 import { Button } from "@/components/ui/Button";
 
 export const BrandingForm = () => {
-	console.log("BrandingForm");
 	const {
 		isLoading,
 		draftRestaurant,
@@ -36,8 +35,6 @@ export const BrandingForm = () => {
 	const handleLogoSelect = (file: File) => {
 		setLogoFile(file);
 		setLogoPreview(URL.createObjectURL(file));
-
-		console.log("handleLogoSelect", URL.createObjectURL(file));
 	};
 
 	const handleLogoRemove = () => {
@@ -61,9 +58,6 @@ export const BrandingForm = () => {
 		e.preventDefault();
 		setIsSaving(true);
 		setTimeout(() => {
-			console.log("logoFile", logoFile);
-			console.log("coverFile", coverFile);
-
 			setIsSaving(false);
 		}, 2000);
 	};

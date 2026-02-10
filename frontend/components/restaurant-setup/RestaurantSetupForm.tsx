@@ -47,7 +47,6 @@ export const RestaurantSetupForm: React.FC = () => {
 		if (step == 3) {
 			try {
 				await updateRestaurant(restaurantDetails);
-				console.log("create restaurant");
 				setError("");
 				router.replace("/dashboard");
 			} catch (error) {

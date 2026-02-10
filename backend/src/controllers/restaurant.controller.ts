@@ -112,7 +112,6 @@ const createRestaurant = async (req: AuthRequest, res: Response) => {
 
 const getUserRestaurants = async (req: AuthRequest, res: Response) => {
 	try {
-		console.log("getUserRestaurants req.user?", req.user);
 		const cognitoSub = req.user?.sub;
 
 		if (!cognitoSub) {
