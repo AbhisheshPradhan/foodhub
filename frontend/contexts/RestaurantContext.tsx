@@ -11,7 +11,10 @@ import {
 	useRef,
 } from "react";
 
-import { useRestaurantsQuery } from "@/hooks/useRestaurantsQuery";
+import {
+	useRestaurantsQuery,
+	useSelectedRestaurantQuery,
+} from "@/hooks/useRestaurantsQuery";
 import { useAuth } from "./AuthContext";
 import { MenuCategory, Restaurant } from "@/types";
 
@@ -38,7 +41,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 
 	const {
 		data: restaurants = [],
-		isLoading: queryLoading,
+		isLoading: listLoading,
 		refetch,
 	} = useRestaurantsQuery();
 
@@ -51,6 +54,16 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 		}
 		return null;
 	});
+
+	const restaurantIdToFetch =
+		selectedRestaurantId ??
+		(restaurants.length > 0 ? restaurants[0].id : null);
+
+	const {
+		data: selectedRestaurant = null,
+		isLoading: restaurantLoading,
+		refetch: refetchSelectedRestaurant,
+	} = useSelectedRestaurantQuery(restaurantIdToFetch);
 
 	const [designerActiveCategoryId, setDesignerActiveCategoryIdState] =
 		useState<number | null>(null);
@@ -66,36 +79,27 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 		draftRestaurantRef.current = draftRestaurant;
 	}, [draftRestaurant]);
 
-	const selectedRestaurant = useMemo(() => {
-		if (!restaurants.length) return null;
+	useEffect(() => {
+		if (selectedRestaurant && selectedRestaurant.id !== draftRestaurantId) {
+			setDraftRestaurantId(selectedRestaurant.id);
+			setDraftRestaurant(selectedRestaurant);
 
-		if (selectedRestaurantId) {
-			const found = restaurants.find(
-				(r) => r.id === selectedRestaurantId,
-			);
-			if (found) return found;
+			if (selectedRestaurant.id !== selectedRestaurantId) {
+				setSelectedRestaurantId(selectedRestaurant.id);
+				localStorage.setItem(
+					"selectedRestaurantId",
+					selectedRestaurant.id.toString(),
+				);
+			}
 		}
+	}, [
+		selectedRestaurant,
+		draftRestaurantId,
+		selectedRestaurantId,
+		setDraftRestaurantId,
+	]);
 
-		return restaurants[0] ?? null;
-	}, [restaurants, selectedRestaurantId]);
-
-	const needsDraftSync =
-		selectedRestaurant && selectedRestaurant.id !== draftRestaurantId;
-
-	if (needsDraftSync) {
-		setDraftRestaurantId(selectedRestaurant.id);
-		setDraftRestaurant(selectedRestaurant);
-
-		if (selectedRestaurant.id !== selectedRestaurantId) {
-			setSelectedRestaurantId(selectedRestaurant.id);
-			localStorage.setItem(
-				"selectedRestaurantId",
-				selectedRestaurant.id.toString(),
-			);
-		}
-	}
-
-	const isLoading = authLoading || queryLoading;
+	const isLoading = authLoading || listLoading || restaurantLoading;
 
 	const setSelectedRestaurant = useCallback((restaurant: Restaurant) => {
 		setSelectedRestaurantId(restaurant.id);
@@ -140,8 +144,9 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 	const refetchRestaurants = useCallback(() => {
 		if (user) {
 			refetch();
+			refetchSelectedRestaurant();
 		}
-	}, [user, refetch]);
+	}, [user, refetch, refetchSelectedRestaurant]);
 
 	const value = useMemo(
 		() => ({

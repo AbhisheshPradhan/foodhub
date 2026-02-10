@@ -135,7 +135,7 @@ export function MenuDnD() {
 					};
 				},
 			);
-			const response = await updateMenuOrder(draftRestaurant?.id, {
+			await updateMenuOrder(draftRestaurant?.id, {
 				categories: categoryOrderPayload,
 			});
 			setIsSaving(false);

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Zap } from "lucide-react";
 
 import { UserMenu } from "../auth/UserMenu";
-import { RestaurantSelector } from "../restaurant-selector/RestaurantSelector";
+import { RestaurantsDropdown } from "../restaurants-dropdown/RestaurantsDropdown";
 import { Button } from "../ui/Button";
 
 export const AppNav = () => {
@@ -23,7 +23,7 @@ export const AppNav = () => {
 					>
 						Quick Edit
 					</Button>
-					<RestaurantSelector />
+					<RestaurantsDropdown />
 					<UserMenu />
 				</div>
 			</div>

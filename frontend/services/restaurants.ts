@@ -1,6 +1,16 @@
 import { api } from "@/api/client";
+import { Restaurant } from "@/types";
 
-export async function updateRestaurant(restaurantDetails) {
+export type CreateRestaurantDto = Omit<
+	Restaurant,
+	"id" | "createdAt" | "updatedAt"
+>;
+
+export type UpdateRestaurantDto = Partial<
+	Omit<Restaurant, "id" | "createdAt" | "updatedAt">
+>;
+
+export async function createRestaurant(restaurantDetails: CreateRestaurantDto) {
 	try {
 		const response = await api.post("/restaurants", restaurantDetails);
 		return response.data;
@@ -10,12 +20,38 @@ export async function updateRestaurant(restaurantDetails) {
 	}
 }
 
-export async function getUserRestaurants() {
+export async function updateRestaurant(
+	restaurantId: number,
+	restaurantDetails: UpdateRestaurantDto,
+) {
+	try {
+		const response = await api.patch(
+			`/restaurants/${restaurantId}`,
+			restaurantDetails,
+		);
+		return response.data;
+	} catch (error) {
+		console.error("error updating restaurant", error);
+		throw new Error("Error updating restaurant");
+	}
+}
+
+export async function getRestaurantsList() {
 	try {
 		const response = await api.get("/restaurants");
 		return response.data;
 	} catch (error) {
-		console.error("error creating restaurant", error);
+		console.error("error getting restaurants list", error);
+	}
+}
+
+export async function getRestaurant(restaurantId: number) {
+	try {
+		const response = await api.get(`/restaurants/${restaurantId}`);
+		return response.data;
+	} catch (error) {
+		console.error("error getting restaurant", error);
+		throw new Error("Error getting restaurant");
 	}
 }
 

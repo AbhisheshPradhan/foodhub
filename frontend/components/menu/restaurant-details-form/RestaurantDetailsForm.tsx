@@ -6,9 +6,11 @@ import { useForm, Controller } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { updateRestaurant } from "@/services/restaurants";
-import { restaurantsQueryKey } from "@/hooks/useRestaurantsQuery";
+import {
+	restaurantsQueryKey,
+	restaurantQueryKey,
+} from "@/hooks/useRestaurantsQuery";
 import { Restaurant } from "@/types";
-
 import { useRestaurants } from "@/contexts/RestaurantContext";
 import { Label } from "@/components/form/Label";
 import { TextInput } from "@/components/form/input/TextInput";
@@ -87,16 +89,30 @@ export const RestaurantDetailsForm = () => {
 				...data,
 			};
 
-			const updatedRestaurant = await updateRestaurant(payload);
-
-			// Update the cache with the response
-			queryClient.setQueryData(
-				restaurantsQueryKey,
-				(old: Restaurant[] | undefined) =>
-					old?.map((r) =>
-						r.id === updatedRestaurant.id ? updatedRestaurant : r,
-					) ?? [],
+			const updatedRestaurant = await updateRestaurant(
+				draftRestaurant.id,
+				payload,
 			);
+
+			if (updatedRestaurant.success) {
+				queryClient.setQueryData(
+					restaurantsQueryKey,
+					(old: Restaurant[] | undefined) =>
+						old?.map((r) =>
+							r.id === updatedRestaurant.data.id
+								? updatedRestaurant.data
+								: r,
+						) ?? [],
+				);
+
+				queryClient.setQueryData(
+					restaurantQueryKey(draftRestaurant.id),
+					(old: Restaurant | undefined) =>
+						old
+							? { ...old, ...updatedRestaurant.data }
+							: updatedRestaurant.data,
+				);
+			}
 		} catch (err) {
 			console.error("error saving restaurant details", err);
 		} finally {
