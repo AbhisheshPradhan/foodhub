@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 
 import { prisma } from "../lib/prisma.js";
 import { AuthRequest } from "./auth.controller.js";
@@ -15,7 +15,7 @@ interface CategoryOrder {
 	menuItems: MenuItemOrder[];
 }
 
-export const updateMenuOrder = async (req: AuthRequest, res: Response) => {
+const updateMenuOrder = async (req: AuthRequest, res: Response) => {
 	const { categories } = req.body as { categories: CategoryOrder[] };
 	const restaurantId = Number(req.params.restaurantId);
 
@@ -88,6 +88,49 @@ export const updateMenuOrder = async (req: AuthRequest, res: Response) => {
 	}
 };
 
+const getMenuDetailsBySlug = async (req: Request, res: Response) => {
+	try {
+		const { slug } = req.params;
+
+		console.log("getMenuDetailsBySlug slug:::", slug);
+		if (!slug || typeof slug !== "string") {
+			return res
+				.status(400)
+				.json(responseWrapper.error(ErrorMessages.INVALID_REQUEST));
+		}
+
+		// Find the user along with their restaurants, categories, and menu items
+		const restaurantDetails = await prisma.restaurant.findUnique({
+			where: { menuUrl: slug },
+			include: {
+				categories: {
+					where: { isActive: true },
+					orderBy: { displayOrder: "asc" },
+					include: {
+						menuItems: {
+							where: { isAvailable: true },
+							orderBy: { displayOrder: "asc" },
+							include: {
+								allergens: {
+									include: {
+										allergen: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		});
+
+		return res.status(200).json(responseWrapper.success(restaurantDetails));
+	} catch (error) {
+		console.error("getDetails error:", error);
+		return res.status(500).json(responseWrapper.error());
+	}
+};
+
 export const menuController = {
 	updateMenuOrder,
+	getMenuDetailsBySlug,
 };

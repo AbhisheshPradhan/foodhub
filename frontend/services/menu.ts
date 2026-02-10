@@ -25,3 +25,16 @@ export const updateMenuOrder = async (
 		throw error;
 	}
 };
+
+export const getMenuData = async (slug: string) => {
+	try {
+		const res = await fetch(
+			`${process.env.NEXT_PUBLIC_SERVER_API_BASE_URL}/menu/${slug}`,
+		);
+		if (!res.ok) throw new Error(`HTTP ${res.status}`);
+		return await res.json();
+	} catch (error) {
+		console.error("Fetch error:", error);
+		return { data: null, error: String(error) };
+	}
+};

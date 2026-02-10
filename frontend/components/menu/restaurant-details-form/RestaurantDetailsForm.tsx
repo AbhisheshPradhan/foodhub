@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
+
+import { updateRestaurant } from "@/services/restaurants";
+import { restaurantsQueryKey } from "@/hooks/useRestaurantsQuery";
+import { Restaurant } from "@/types";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
 import { Label } from "@/components/form/Label";
@@ -29,6 +34,7 @@ export const RestaurantDetailsForm = () => {
 		updateDraftRestaurantDetails,
 		resetDraftRestaurantState,
 	} = useRestaurants();
+	const queryClient = useQueryClient();
 
 	const [isSaving, setIsSaving] = useState(false);
 
@@ -75,22 +81,29 @@ export const RestaurantDetailsForm = () => {
 	}, [resetDraftRestaurantState]);
 
 	const onSubmit = async (data: RestaurantDetailsFormData) => {
+		if (!draftRestaurant) return;
+
 		setIsSaving(true);
 
 		try {
-			console.log("onSubmit data", data);
-			Object.entries(data).forEach(([key, value]) => {
-				updateDraftRestaurantDetails(
-					key as keyof RestaurantDetailsFormData,
-					value,
-				);
-			});
+			const payload = {
+				id: draftRestaurant.id,
+				...data,
+			};
 
-			setTimeout(() => {
-				setIsSaving(false);
-			}, 2000);
+			const updatedRestaurant = await updateRestaurant(payload);
+
+			// Update the cache with the response
+			queryClient.setQueryData(
+				restaurantsQueryKey,
+				(old: Restaurant[] | undefined) =>
+					old?.map((r) =>
+						r.id === updatedRestaurant.id ? updatedRestaurant : r,
+					) ?? [],
+			);
 		} catch (err) {
 			console.error("error saving restaurant details", err);
+		} finally {
 			setIsSaving(false);
 		}
 	};

@@ -11,7 +11,7 @@ import {
 	validateSlugFormat,
 } from "../utils/slug.js";
 
-export const createRestaurant = async (req: AuthRequest, res: Response) => {
+const createRestaurant = async (req: AuthRequest, res: Response) => {
 	try {
 		const cognitoSub = req.user?.sub; // Already verified by middleware
 
@@ -110,7 +110,7 @@ export const createRestaurant = async (req: AuthRequest, res: Response) => {
 	}
 };
 
-export const getUserRestaurants = async (req: AuthRequest, res: Response) => {
+const getUserRestaurants = async (req: AuthRequest, res: Response) => {
 	try {
 		console.log("getUserRestaurants req.user?", req.user);
 		const cognitoSub = req.user?.sub;
@@ -205,7 +205,7 @@ export const getUserRestaurants = async (req: AuthRequest, res: Response) => {
 	}
 };
 
-export const checkSlug = async (req: Request, res: Response) => {
+const checkSlug = async (req: Request, res: Response) => {
 	try {
 		const { slug } = req.params;
 		const { excludeId } = req.query;

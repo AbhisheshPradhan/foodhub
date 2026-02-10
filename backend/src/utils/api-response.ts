@@ -37,6 +37,7 @@ export enum ErrorMessages {
 	NOT_AUTHENTICATED = "User not authenticated",
 	INVALID_TOKEN = "Invalid token",
 	INVALID_PAYLOAD = "Invalid payload",
+	INVALID_REQUEST = "Invalid request",
 	FORBIDDEN = "No access",
 	DEFAULT = "Internal server error",
 }

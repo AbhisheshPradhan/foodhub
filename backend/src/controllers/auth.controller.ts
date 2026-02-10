@@ -20,7 +20,7 @@ export interface AuthRequest extends Request {
 	};
 }
 
-export const getOrCreateUser = async (req: AuthRequest, res: Response) => {
+const getOrCreateUser = async (req: AuthRequest, res: Response) => {
 	try {
 		const cognitoSub = req.user?.sub;
 		if (!cognitoSub) {

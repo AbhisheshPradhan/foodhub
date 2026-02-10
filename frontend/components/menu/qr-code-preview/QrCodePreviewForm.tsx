@@ -32,8 +32,8 @@ export const QrCodePreview = () => {
 
 	// TODO: menu url must exist
 	const menuUrl = selectedRestaurant
-		? `https://foodhub.com/menu/${selectedRestaurant.menuUrl}`
-		: "https://foodhub.com";
+		? `${process.env.NEXT_PUBLIC_CLIENT_DOMAIN}/menu/${selectedRestaurant.menuUrl}`
+		: process.env.NEXT_PUBLIC_CLIENT_DOMAIN;
 
 	const { qrDataUrl } = useQrCodeGenerator({
 		config,
