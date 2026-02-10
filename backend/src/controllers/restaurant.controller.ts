@@ -13,7 +13,7 @@ import {
 
 const createRestaurant = async (req: AuthRequest, res: Response) => {
 	try {
-		const cognitoSub = req.user?.sub; // Already verified by middleware
+		const cognitoSub = req.user?.sub;
 
 		if (!cognitoSub) {
 			return res
@@ -110,35 +110,190 @@ const createRestaurant = async (req: AuthRequest, res: Response) => {
 	}
 };
 
-const getUserRestaurants = async (req: AuthRequest, res: Response) => {
+const getRestaurantsList = async (req: AuthRequest, res: Response) => {
 	try {
 		const cognitoSub = req.user?.sub;
 
 		if (!cognitoSub) {
-			return res.status(401).json({ message: "Unauthorized" });
+			return res
+				.status(401)
+				.json(responseWrapper.error(ErrorMessages.UNAUTHORIZED));
 		}
 
-		// Find the user along with their restaurants, categories, and menu items
-		const user = await prisma.user.findUnique({
-			where: { cognitoSub },
+		const userRestaurants = await prisma.userRestaurant.findMany({
+			where: {
+				user: { cognitoSub },
+			},
 			include: {
-				userRestaurants: {
+				restaurant: {
+					select: {
+						id: true,
+						name: true,
+						address: true,
+						menuUrl: true,
+					},
+				},
+			},
+			orderBy: {
+				restaurant: {
+					name: "asc",
+				},
+			},
+		});
+
+		const restaurants = userRestaurants.map((ur) => ({
+			id: ur.restaurant.id,
+			name: ur.restaurant.name,
+			address: ur.restaurant.address,
+			menuUrl: ur.restaurant.menuUrl,
+			role: ur.role,
+		}));
+
+		return res.status(200).json(responseWrapper.success(restaurants));
+	} catch (error) {
+		console.error("getUserRestaurants error:", error);
+		return res.status(500).json(responseWrapper.error());
+	}
+};
+
+const updateRestaurant = async (req: AuthRequest, res: Response) => {
+	try {
+		const cognitoSub = req.user?.sub;
+		const restaurantId = Number(req.params.restaurantId);
+
+		if (!cognitoSub) {
+			return res
+				.status(401)
+				.json(responseWrapper.error(ErrorMessages.UNAUTHORIZED));
+		}
+
+		if (isNaN(restaurantId)) {
+			return res
+				.status(400)
+				.json(responseWrapper.error("Invalid restaurant ID"));
+		}
+
+		const userRestaurant = await prisma.userRestaurant.findFirst({
+			where: {
+				restaurantId,
+				user: { cognitoSub },
+			},
+		});
+
+		if (!userRestaurant) {
+			return res
+				.status(404)
+				.json(responseWrapper.error("Restaurant not found"));
+		}
+
+		// Define allowed fields that can be updated
+		const allowedFields = [
+			"name",
+			"menuUrl",
+			"address",
+			"phone",
+			"email",
+			"website",
+			"facebook",
+			"instagram",
+			"tiktok",
+		] as const;
+
+		const updateData: Record<string, unknown> = {};
+
+		for (const field of allowedFields) {
+			if (req.body[field] !== undefined) {
+				updateData[field] = req.body[field];
+			}
+		}
+
+		// If no valid fields to update
+		if (Object.keys(updateData).length === 0) {
+			return res
+				.status(400)
+				.json(responseWrapper.error("No valid fields to update"));
+		}
+
+		// Special validation for menuUrl if it's being updated
+		if (updateData.menuUrl !== undefined) {
+			const menuUrl = updateData.menuUrl as string;
+
+			if (!validateSlugFormat(menuUrl)) {
+				return res
+					.status(400)
+					.json(
+						responseWrapper.error(
+							"URL can only contain lowercase letters, numbers, and hyphens",
+						),
+					);
+			}
+
+			const exists = await prisma.restaurant.findFirst({
+				where: {
+					menuUrl,
+					id: { not: restaurantId },
+				},
+			});
+
+			if (exists) {
+				return res
+					.status(400)
+					.json(
+						responseWrapper.error(
+							`Already taken. Try ${menuUrl}-2`,
+						),
+					);
+			}
+		}
+
+		const restaurant = await prisma.restaurant.update({
+			where: { id: restaurantId },
+			data: updateData,
+		});
+
+		return res.status(200).json(responseWrapper.success(restaurant));
+	} catch (error) {
+		console.error("updateRestaurant error:", error);
+		return res.status(500).json(responseWrapper.error());
+	}
+};
+
+const getRestaurant = async (req: AuthRequest, res: Response) => {
+	try {
+		const cognitoSub = req.user?.sub;
+		const restaurantId = Number(req.params.restaurantId);
+
+		if (!cognitoSub) {
+			return res
+				.status(401)
+				.json(responseWrapper.error(ErrorMessages.UNAUTHORIZED));
+		}
+
+		if (isNaN(restaurantId)) {
+			return res
+				.status(400)
+				.json(responseWrapper.error("Invalid restaurant ID"));
+		}
+
+		const userRestaurant = await prisma.userRestaurant.findFirst({
+			where: {
+				restaurantId,
+				user: { cognitoSub },
+			},
+			include: {
+				restaurant: {
 					include: {
-						restaurant: {
+						categories: {
+							where: { isActive: true },
+							orderBy: { displayOrder: "asc" },
 							include: {
-								categories: {
-									where: { isActive: true },
+								menuItems: {
+									where: { isAvailable: true },
 									orderBy: { displayOrder: "asc" },
 									include: {
-										menuItems: {
-											where: { isAvailable: true },
-											orderBy: { displayOrder: "asc" },
+										allergens: {
 											include: {
-												allergens: {
-													include: {
-														allergen: true,
-													},
-												},
+												allergen: true,
 											},
 										},
 									},
@@ -150,56 +305,59 @@ const getUserRestaurants = async (req: AuthRequest, res: Response) => {
 			},
 		});
 
-		if (!user) {
-			return res.status(404).json({ message: "User not found" });
+		if (!userRestaurant) {
+			return res
+				.status(404)
+				.json(responseWrapper.error("Restaurant not found"));
 		}
 
-		// Transform the data into a cleaner structure
-		const restaurants = user.userRestaurants.map((ur) => ({
-			id: ur.restaurant.id,
-			name: ur.restaurant.name,
-			menuUrl: ur.restaurant.menuUrl,
-			address: ur.restaurant.address,
-			phone: ur.restaurant.phone,
-			email: ur.restaurant.email,
-			website: ur.restaurant.website,
-			facebook: ur.restaurant.facebook,
-			instagram: ur.restaurant.instagram,
-			tiktok: ur.restaurant.tiktok,
-			role: ur.role,
-			categories: ur.restaurant.categories.map((category) => ({
-				id: category.id,
-				name: category.name,
-				description: category.description,
-				menuItems: category.menuItems.map((item) => ({
-					id: item.id,
-					categoryId: category.id,
-					name: item.name,
-					description: item.description,
-					price: item.price,
-					imageUrl: item.imageUrl,
-					isVegetarian: item.isVegetarian,
-					isVegan: item.isVegan,
-					isGlutenFree: item.isGlutenFree,
-					isSpicy: item.isSpicy,
-					spiceLevel: item.spiceLevel,
-					calories: item.calories,
-					preparationTime: item.preparationTime,
-					servings: item.servings,
-					allergens: item.allergens.map((a) => ({
-						id: a.allergen.id,
-						name: a.allergen.name,
-						description: a.allergen.description,
-						icon: a.allergen.icon,
+		const restaurant = {
+			id: userRestaurant.restaurant.id,
+			name: userRestaurant.restaurant.name,
+			menuUrl: userRestaurant.restaurant.menuUrl,
+			address: userRestaurant.restaurant.address,
+			phone: userRestaurant.restaurant.phone,
+			email: userRestaurant.restaurant.email,
+			website: userRestaurant.restaurant.website,
+			facebook: userRestaurant.restaurant.facebook,
+			instagram: userRestaurant.restaurant.instagram,
+			tiktok: userRestaurant.restaurant.tiktok,
+			role: userRestaurant.role,
+			categories: userRestaurant.restaurant.categories.map(
+				(category) => ({
+					id: category.id,
+					name: category.name,
+					description: category.description,
+					menuItems: category.menuItems.map((item) => ({
+						id: item.id,
+						categoryId: category.id,
+						name: item.name,
+						description: item.description,
+						price: item.price,
+						imageUrl: item.imageUrl,
+						isVegetarian: item.isVegetarian,
+						isVegan: item.isVegan,
+						isGlutenFree: item.isGlutenFree,
+						isSpicy: item.isSpicy,
+						spiceLevel: item.spiceLevel,
+						calories: item.calories,
+						preparationTime: item.preparationTime,
+						servings: item.servings,
+						allergens: item.allergens.map((a) => ({
+							id: a.allergen.id,
+							name: a.allergen.name,
+							description: a.allergen.description,
+							icon: a.allergen.icon,
+						})),
+						modifiers: item.modifiers ? item.modifiers : [],
 					})),
-					modifiers: item.modifiers ? item.modifiers : [],
-				})),
-			})),
-		}));
+				}),
+			),
+		};
 
-		return res.status(200).json(responseWrapper.success(restaurants));
+		return res.status(200).json(responseWrapper.success(restaurant));
 	} catch (error) {
-		console.error("getUserRestaurants error:", error);
+		console.error("getRestaurant error:", error);
 		return res.status(500).json(responseWrapper.error());
 	}
 };
@@ -244,6 +402,8 @@ const checkSlug = async (req: Request, res: Response) => {
 
 export const restaurantController = {
 	createRestaurant,
-	getUserRestaurants,
+	getRestaurant,
+	updateRestaurant,
+	getRestaurantsList,
 	checkSlug,
 };

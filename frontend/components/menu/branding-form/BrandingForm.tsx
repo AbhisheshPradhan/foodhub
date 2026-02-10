@@ -2,12 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
 import { Label } from "@/components/form/Label";
 import { ImageUpload } from "@/components/form/input/ImageUpload";
 import { ColorPicker } from "@/components/form/input/ColorPicker";
 import { Button } from "@/components/ui/Button";
+import { updateRestaurant } from "@/services/restaurants";
+import {
+	restaurantQueryKey,
+	restaurantsQueryKey,
+} from "@/hooks/useRestaurantsQuery";
+import { Restaurant } from "@/types";
+
+interface BrandingFormData {
+	brandColor: string;
+}
 
 export const BrandingForm = () => {
 	const {
@@ -16,17 +28,31 @@ export const BrandingForm = () => {
 		updateDraftRestaurantDetails,
 		resetDraftRestaurantState,
 	} = useRestaurants();
+	const queryClient = useQueryClient();
 	const [isSaving, setIsSaving] = useState(false);
 
 	const [logoFile, setLogoFile] = useState<File | null>(null);
-	const [logoPreview, setLogoPreview] = useState<string | null>(
-		() => draftRestaurant?.logoUrl || null,
-	);
+	const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
 	const [coverFile, setCoverFile] = useState<File | null>(null);
-	const [coverPreview, setCoverPreview] = useState<string | null>(
-		() => draftRestaurant?.coverPhotoUrl || null,
-	);
+	const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+	const { control, handleSubmit, reset } = useForm<BrandingFormData>({
+		mode: "onChange",
+		defaultValues: {
+			brandColor: "#1f1f1f",
+		},
+	});
+
+	useEffect(() => {
+		if (draftRestaurant) {
+			reset({
+				brandColor: draftRestaurant.brandColor || "#1f1f1f",
+			});
+			setLogoPreview(draftRestaurant.logoUrl || null);
+			setCoverPreview(draftRestaurant.coverPhotoUrl || null);
+		}
+	}, [draftRestaurant, reset]);
 
 	useEffect(() => {
 		resetDraftRestaurantState();
@@ -54,16 +80,50 @@ export const BrandingForm = () => {
 		updateDraftRestaurantDetails("coverPhotoUrl", "");
 	};
 
-	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const onSubmit = async (data: BrandingFormData) => {
+		if (!draftRestaurant) return;
 		setIsSaving(true);
-		setTimeout(() => {
+		try {
+			const payload = {
+				id: draftRestaurant.id,
+				...data,
+			};
+
+			console.log("payload", payload);
+
+			const updatedRestaurant = await updateRestaurant(
+				draftRestaurant.id,
+				payload,
+			);
+
+			if (updatedRestaurant.success) {
+				queryClient.setQueryData(
+					restaurantsQueryKey,
+					(old: Restaurant[] | undefined) =>
+						old?.map((r) =>
+							r.id === updatedRestaurant.data.id
+								? updatedRestaurant.data
+								: r,
+						) ?? [],
+				);
+
+				queryClient.setQueryData(
+					restaurantQueryKey(draftRestaurant.id),
+					(old: Restaurant | undefined) =>
+						old
+							? { ...old, ...updatedRestaurant.data }
+							: updatedRestaurant.data,
+				);
+			}
+		} catch (err) {
+			console.error("error saving branding", err);
+		} finally {
 			setIsSaving(false);
-		}, 2000);
+		}
 	};
 
 	return (
-		<form onSubmit={handleSave}>
+		<form onSubmit={handleSubmit(onSubmit)}>
 			<div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
 				<div className="space-y-6 border-t border-gray-100 p-5 sm:p-5 dark:border-gray-800">
 					<div>
@@ -89,15 +149,22 @@ export const BrandingForm = () => {
 
 					<div className="relative">
 						<Label htmlFor="brandColor">Brand Colour</Label>
-						<ColorPicker
-							id="brandColor"
-							value={draftRestaurant?.brandColor || "#1f1f1f"}
-							onChange={(color) =>
-								updateDraftRestaurantDetails(
-									"brandColor",
-									color,
-								)
-							}
+						<Controller
+							name="brandColor"
+							control={control}
+							render={({ field }) => (
+								<ColorPicker
+									id="brandColor"
+									value={field.value}
+									onChange={(color) => {
+										field.onChange(color);
+										updateDraftRestaurantDetails(
+											"brandColor",
+											color,
+										);
+									}}
+								/>
+							)}
 						/>
 					</div>
 

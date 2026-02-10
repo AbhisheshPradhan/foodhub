@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Save } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useRestaurants } from "@/contexts/RestaurantContext";
 import { Label } from "@/components/form/Label";
@@ -13,7 +14,15 @@ import {
 	type CurrencyCode,
 } from "@/components/form/input/CurrencySelect";
 import { Button } from "@/components/ui/Button";
-import { checkSlugAvailability } from "@/services/restaurants";
+import {
+	checkSlugAvailability,
+	updateRestaurant,
+} from "@/services/restaurants";
+import {
+	restaurantQueryKey,
+	restaurantsQueryKey,
+} from "@/hooks/useRestaurantsQuery";
+import { Restaurant } from "@/types";
 
 interface PreferencesFormData {
 	menuUrl: string;
@@ -32,6 +41,7 @@ export const PreferencesForm = () => {
 		updateDraftRestaurantDetails,
 		resetDraftRestaurantState,
 	} = useRestaurants();
+	const queryClient = useQueryClient();
 
 	const [isSaving, setIsSaving] = useState(false);
 	const [menuUrlHint, setMenuUrlHint] = useState("");
@@ -76,37 +86,39 @@ export const PreferencesForm = () => {
 	}, [resetDraftRestaurantState]);
 
 	const onSubmit = async (data: PreferencesFormData) => {
-		if (data.menuUrl) {
-			try {
-				const result = await checkSlugAvailability(
-					data.menuUrl,
-					draftRestaurant?.id,
-				);
-				if (!result.available) {
-					setIsMenuUrlError(true);
-					setMenuUrlHint(
-						result.error || "Menu Url is not available.",
-					);
-					return;
-				}
-			} catch (error) {
-				setIsMenuUrlError(true);
-				setMenuUrlHint("Error validating Menu Url.");
-				return;
-			}
-		}
-
+		if (!draftRestaurant) return;
 		setIsSaving(true);
 
 		try {
-			Object.entries(data).forEach(([key, value]) => {
-				updateDraftRestaurantDetails(
-					key as keyof PreferencesFormData,
-					value,
-				);
-			});
+			const payload = {
+				id: draftRestaurant.id,
+				...data,
+			};
 
-			// TODO: Add actual save logic here
+			const updatedRestaurant = await updateRestaurant(
+				draftRestaurant.id,
+				payload,
+			);
+
+			if (updatedRestaurant.success) {
+				queryClient.setQueryData(
+					restaurantsQueryKey,
+					(old: Restaurant[] | undefined) =>
+						old?.map((r) =>
+							r.id === updatedRestaurant.data.id
+								? updatedRestaurant.data
+								: r,
+						) ?? [],
+				);
+
+				queryClient.setQueryData(
+					restaurantQueryKey(draftRestaurant.id),
+					(old: Restaurant | undefined) =>
+						old
+							? { ...old, ...updatedRestaurant.data }
+							: updatedRestaurant.data,
+				);
+			}
 		} catch (err) {
 			console.error("error saving preferences", err);
 		}
