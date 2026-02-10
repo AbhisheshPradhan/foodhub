@@ -11,7 +11,7 @@ export const updateMenuOrder = async (
 ) => {
 	try {
 		const response = await api.patch(
-			`/restaurants/${restaurantId}/menu/order`,
+			`/restaurants/${restaurantId}/menu/reorder`,
 			updateOrderPayload,
 		);
 		return response.data;

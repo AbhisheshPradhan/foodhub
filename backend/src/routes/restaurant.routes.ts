@@ -10,6 +10,6 @@ router.post("/", restaurantController.createRestaurant);
 router.get("/", authenticate, restaurantController.getUserRestaurants);
 router.get("/check-slug/:slug", restaurantController.checkSlug);
 
-router.patch("/:restaurantId/menu/order", authenticate, updateMenuOrder);
+router.patch("/:restaurantId/menu/reorder", authenticate, updateMenuOrder);
 
 export default router;
