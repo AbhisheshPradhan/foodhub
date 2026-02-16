@@ -4,28 +4,22 @@ import { useRef, useState } from "react";
 
 import { X } from "lucide-react";
 import { DeleteButton } from "@/components/ui/DeleteButton";
-import { EditableCategory } from "@/types";
+import { MenuCategory } from "@/types";
 import { DeleteAlert } from "@/components/ui/DeleteAlert";
 
-const BLANK_CATEGORY: EditableCategory = {
-	id: undefined,
-	name: "",
-	description: "",
-};
-
-export const AddCategoryModal = ({
-	category = BLANK_CATEGORY,
+export const AddOrEditCategoryModal = ({
+	category,
 	isOpen,
 	onClose,
 	onSave,
 }: {
-	category?: EditableCategory;
+	category: MenuCategory | null;
 	isOpen: boolean;
 	onClose: () => void;
 	onSave: (name: string, description: string) => void;
 }) => {
-	const [name, setName] = useState("");
-	const [description, setDescription] = useState("");
+	const [name, setName] = useState(category?.name || "");
+	const [description, setDescription] = useState(category?.description || "");
 	const backdropRef = useRef<HTMLDivElement>(null);
 	const [showDeleteAlert, setShowDeleteAlert] = useState<boolean>(false);
 	const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -39,8 +33,10 @@ export const AddCategoryModal = ({
 	};
 
 	const handleSave = () => {
-		if (!name.trim()) return;
-		onSave(name.trim(), description.trim());
+		if (!name?.trim()) {
+			return;
+		}
+		onSave(name?.trim(), description.trim());
 		setName("");
 		setDescription("");
 		onClose();
@@ -66,7 +62,7 @@ export const AddCategoryModal = ({
 			<div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
 				<div className="flex items-center justify-between mb-4">
 					<h2 className="text-lg font-semibold text-gray-900">
-						{category.id ? "Edit" : "Add"} Category
+						{category?.id ? "Edit" : "Add"} Category
 					</h2>
 					<button
 						onClick={handleClose}
@@ -107,7 +103,7 @@ export const AddCategoryModal = ({
 
 				<div className="mt-6 flex items-center justify-between gap-3">
 					<div className="flex items-center gap-2">
-						{category.id && (
+						{category?.id && (
 							<DeleteButton
 								type="button"
 								onClick={() => setShowDeleteAlert(true)}

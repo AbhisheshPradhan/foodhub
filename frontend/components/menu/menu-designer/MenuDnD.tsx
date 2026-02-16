@@ -25,7 +25,7 @@ import { MenuDesignerToolbar } from "./MenuDesignerToolbar";
 import { MenuItemOverlay } from "./MenuItemOverlay";
 import { CategoryOverlay } from "./CategoryOverlay";
 import { SortableCategory } from "./SortableCategory";
-import { AddCategoryModal } from "./AddCategoryModal";
+import { AddOrEditCategoryModal } from "./AddOrEditCategoryModal";
 import {
 	CategoryOrder,
 	EditableMenuItem,
@@ -57,8 +57,13 @@ export function MenuDnD() {
 	const [isSaving, setIsSaving] = useState(false);
 	const [saveSuccess, setSaveSuccess] = useState(false);
 	const [hasOrderChanges, setHasOrderChanges] = useState(false);
-	const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
-	const [isAddMenuItemOpen, setIsAddMenuItemOpen] = useState(false);
+	const [isAddOrEditCategoryOpen, setIsAddOrEditCategoryOpen] =
+		useState(false);
+	const [isAddOrEditMenuItemOpen, setIsAddOrEditMenuItemOpen] =
+		useState(false);
+
+	const [editableCategory, setEditableCategory] =
+		useState<MenuCategory | null>(null);
 
 	const sensors = useSensors(
 		useSensor(PointerSensor),
@@ -162,8 +167,14 @@ export function MenuDnD() {
 		}
 	}, [allCollapsed, categories]);
 
-	const handleAddCategory = useCallback(
-		(name: string, description: string) => {
+	const handleAddOrEditCategory = useCallback(
+		(name: string, description: string, id?: number) => {
+			if (id) {
+				console.log("edit category");
+				return;
+			}
+
+			console.log("create category");
 			const newCategory: MenuCategory = {
 				id: Date.now(),
 				name,
@@ -174,6 +185,16 @@ export function MenuDnD() {
 		},
 		[categories, updateDraftCategories],
 	);
+
+	const onEditCategory = (category: MenuCategory) => {
+		setEditableCategory(category);
+		setIsAddOrEditCategoryOpen(true);
+	};
+
+	const onCloseCategoryModal = () => {
+		setEditableCategory(null);
+		setIsAddOrEditCategoryOpen(false);
+	};
 
 	const handleAddMenuItem = useCallback(
 		async (item: EditableMenuItem) => {
@@ -365,8 +386,8 @@ export function MenuDnD() {
 			<MenuDesignerToolbar
 				onSaveOrder={handleSaveOrder}
 				onResetOrder={handleResetOrder}
-				onAddCategory={() => setIsAddCategoryOpen(true)}
-				onAddMenuItem={() => setIsAddMenuItemOpen(true)}
+				onAddCategory={() => setIsAddOrEditCategoryOpen(true)}
+				onAddMenuItem={() => setIsAddOrEditMenuItemOpen(true)}
 				onToggleAll={handleToggleAll}
 				allCollapsed={allCollapsed}
 				isSaving={isSaving}
@@ -387,10 +408,13 @@ export function MenuDnD() {
 					<div className="flex flex-col gap-3 overflow-y-scroll h-[calc(100vh-275px)]">
 						{categories.map((category) => (
 							<SortableCategory
-								key={category.id}
+								key={`sortable-category-${category.id}`}
 								category={category}
 								isOpen={openCategories.has(category.id)}
 								onToggle={() => toggleCategory(category.id)}
+								onEdit={(category: MenuCategory) =>
+									onEditCategory(category)
+								}
 							/>
 						))}
 					</div>
@@ -399,20 +423,29 @@ export function MenuDnD() {
 				<DragOverlay>{dragOverlayContent}</DragOverlay>
 			</DndContext>
 
-			<AddCategoryModal
-				// category={null}
-				isOpen={isAddCategoryOpen}
-				onClose={() => setIsAddCategoryOpen(false)}
-				onSave={handleAddCategory}
+			<AddOrEditCategoryModal
+				key={
+					editableCategory?.id
+						? `edit-category-${editableCategory?.id}`
+						: "new-category"
+				}
+				category={editableCategory}
+				isOpen={isAddOrEditCategoryOpen}
+				onClose={onCloseCategoryModal}
+				onSave={handleAddOrEditCategory}
 			/>
 
-			<MenuItemFormModal
-				// item={null}
-				isOpen={isAddMenuItemOpen}
-				onClose={() => setIsAddMenuItemOpen(false)}
+			{/* <MenuItemFormModal
+				key={
+					editableCategory?.id
+						? `edit-category-${editableCategory?.id}`
+						: "new-category"
+				}
+				isOpen={isAddOrEditMenuItemOpen}
+				onClose={() => setIsAddOrEditMenuItemOpen(false)}
 				onSave={handleAddMenuItem}
 				categories={categories}
-			/>
+			/> */}
 		</div>
 	);
 }

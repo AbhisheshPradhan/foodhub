@@ -8,17 +8,19 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { ChevronDown, Copy, GripVertical, Pencil, Trash2 } from "lucide-react";
 
-import { MenuCategory } from "@/types";
+import { EditableCategory, MenuCategory } from "@/types";
 import { SortableMenuItem } from "./SortableMenuItem";
 
 export const SortableCategory = ({
 	category,
 	isOpen,
 	onToggle,
+	onEdit,
 }: {
 	category: MenuCategory;
 	isOpen: boolean;
 	onToggle: () => void;
+	onEdit: (category: MenuCategory) => void;
 }) => {
 	const {
 		attributes,
@@ -81,6 +83,7 @@ export const SortableCategory = ({
 						type="button"
 						className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
 						title="Edit"
+						onClick={() => onEdit(category)}
 					>
 						<Pencil size={14} />
 					</button>
